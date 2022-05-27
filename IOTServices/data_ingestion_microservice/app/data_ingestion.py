@@ -31,16 +31,15 @@ def insert_device_state(params):
         return mycursor
 
 
-def get_device_state(params):
+def get_device_state():
     mydb = connect_database()
     with mydb.cursor() as mycursor:
         sql = "SELECT room,type,value FROM device_state WHERE room=%s AND type=%s ORDER BY date desc limit 1"
         # sql = "SELECT room,type,value FROM device_state WHERE room='"+ str(params['room']) + "' and type ='" + str(params['type']) + "' ORDER BY date desc limit 1"
-        print(f"params = {params}", file=sys.stderr)
         print(f"sql = {sql}", file=sys.stderr)
         values = (
-            params['room'],
-            params['type']
+            "Room1",
+            "temperature"
         )
         mycursor.execute(sql, values)
         result = mycursor.fetchall()
