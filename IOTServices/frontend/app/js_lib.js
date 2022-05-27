@@ -2,7 +2,7 @@
  * Javascript file to implement client side usability for 
  * Operating Systems Desing exercises.
  */
- var api_server_address = "http://34.159.22.233:5001/"
+ var api_server_address = "http://34.159.22.233:5000/"
 
  var get_current_sensor_data = function(){
     $.getJSON( api_server_address+"device_state", function( data ) {
