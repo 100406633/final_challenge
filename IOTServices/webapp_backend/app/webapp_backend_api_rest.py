@@ -5,6 +5,7 @@ import os, requests, json, sys
 app = Flask(__name__)
 CORS(app)
 
+
 @app.route('/device_state', methods=['GET', 'POST'])
 def device_state():
     if request.method == 'POST':
@@ -21,6 +22,7 @@ def device_state():
         return json.dumps(r.json()),r.status_code #check this
     else:
         return "unexpected error in backend"
+
 
 DATA_INGESTION_API_URL = "http://"+os.getenv("DATA_INGESTION_API_ADDRESS")+":"+os.getenv("DATA_INGESTION_API_PORT")
 MESSAGE_ROUTER_API_URL = "http://"+os.getenv("MESSAGE_ROUTER_API_ADDRESS")+":"+os.getenv("MESSAGE_ROUTER_API_PORT")
