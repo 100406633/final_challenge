@@ -3,12 +3,11 @@ import paho.mqtt.client as mqtt
 
 RANDOMIZE_SENSORS_INTERVAL = 30
 MQTT_SERVER = os.getenv("MQTT_SERVER_ADDRESS")
-MQTT_1_PORT = 1883
-MQTT_2_PORT = 1884
+MQTT_1_PORT = int(os.getenv("MQTT_1_SERVER_PORT"))
+MQTT_2_PORT = int(os.getenv("MQTT_2_SERVER_PORT"))
 
 
 
-index_room = 1
 json_temperature = []
 json_air = []
 json_blind = []
@@ -17,6 +16,11 @@ temperature = 0
 current_air = "0"
 current_blind = "0"
 connect_raspberry = False
+room_number = ""
+air_conditioner_mode = ""
+current_air_conditioner_mode = ""
+AIR_CONDITIONER_COMMAND_TOPIC = ""
+
 
 def get_host_name():
     bashCommandName = 'echo $HOSTNAME'
@@ -66,12 +70,18 @@ def on_connect_1883(client, userdata, flags, rc):
 
 
 def on_message_1883(client, userdata, msg):
-    global room_number
     print(f"Message received in MQTT-1883 {msg.topic} with message {msg.payload.decode()}")
     topic = msg.topic.split('/')
-    if topic[-2] == "config":
+    if "config" in topic:
+        global room_number
         room_number = msg.payload.decode()
         print("Room number received as:", room_number)
+    elif "command" in topic:
+        if topic[-1] == "temperature":
+            global air_conditioner_mode
+            print("Air-conditioner command received")
+            payload = json.loads(msg.payload)
+            air_conditioner_mode = payload["mode"]
 
 
 def on_publish_1883(client, userdata, result):
@@ -108,6 +118,7 @@ def connect_mqtt_1883():
         time.sleep(1)
     client.loop_stop()
 
+
 def on_connect_1884(client, userdata, flags, rc):
     global room_number
 
@@ -132,6 +143,7 @@ def on_message_1884(client, userdata, msg):
         connect_raspberry = True
         room_number = msg.payload.decode()
 
+
 def on_publish_1884(client, userdata, result):
     print("data published")
 
@@ -141,7 +153,7 @@ def on_disconnect_1884(client, userdata, flags, rc):
 
 
 def connect_mqtt_1884():
-    global room_number, MQTT_SERVER, MQTT_2_PORT
+    global room_number, MQTT_SERVER, MQTT_2_PORT, AIR_CONDITIONER_COMMAND_TOPIC
     client = mqtt.Client("Client-1884")
     client.username_pw_set(username="dso_server", password="dso_password")
     client.on_connect = on_connect_1884
@@ -153,10 +165,22 @@ def connect_mqtt_1884():
         print("WAITING ROOM NUMBER IN THREAD", threading.currentThread().ident)
         time.sleep(1)
     client.connect(MQTT_SERVER, MQTT_2_PORT, 60)
-    client.loop_forever()
+    AIR_CONDITIONER_COMMAND_TOPIC = f"hotel/physical_rooms/{room_number}/command/air-conditioner"
+    client.loop_start()
+
+    while True:
+        if air_conditioner_mode != current_air_conditioner_mode:
+            print(f"publish in {AIR_CONDITIONER_COMMAND_TOPIC}")
+            client.publish(AIR_CONDITIONER_COMMAND_TOPIC, payload=json.dumps({"mode": air_conditioner_mode}),
+                           qos=0, retain=False)
+            print(f"Published {air_conditioner_mode} in {AIR_CONDITIONER_COMMAND_TOPIC}")
+        time.sleep(1)
+
+    client.loop_stop()
+
 
 def randomize_sensors():
-    global sensors, connect_raspberry
+    global sensors, connect_raspberry, temperature, air_conditioner_mode
     if not connect_raspberry:
 
         sensors = {
@@ -187,11 +211,14 @@ def randomize_sensors():
         }
         print("Set randomized sensors.")
         pprint.pprint(sensors)
+        temperature = sensors["temperature"]["temperature"]
+        air_conditioner_mode = sensors["air_conditioner"]["active"]
         threading.Timer(RANDOMIZE_SENSORS_INTERVAL, randomize_sensors).start()
 
 
 if __name__ == "__main__":
     room_number = ""
+    randomize_sensors()
     t1 = threading.Thread(target=connect_mqtt_1883)
     t2 = threading.Thread(target=connect_mqtt_1884)
 

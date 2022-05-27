@@ -9,8 +9,9 @@ import random
 from datetime import date
 from openpyxl import load_workbook
 from time import sleep
+import json
 
-MQTT_SERVER = "34.141.108.113"
+MQTT_SERVER = "34.159.22.233"
 MQTT_PORT = 1884
 room_number = "Room1"
 TELEMETRY_TOPIC = f"hotel/physical_rooms/{room_number}/telemetry/"
@@ -23,11 +24,16 @@ GPIO.setwarnings(False)
 Motor1A = 24
 Motor1B = 23
 Motor1E = 25
+servoPin = 18
 
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(Motor1A,GPIO.OUT)
 pwm = GPIO.PWM(Motor1A,100)
 pwm.start(0)
+
+GPIO.setup(servoPin, GPIO.OUT)
+servo_pwm = GPIO.PWM(servoPin, 50)
+servo_pwm.start(0)
 
 color = ""
 presence = False
@@ -39,8 +45,24 @@ redPin = 13
 greenPin = 20
 bluePin = 12
 button = 16
+indoor_lightPin = 21
+outdoor_lightPin = 5
 
 sem = threading.Semaphore(2)
+
+
+def angle_to_duty(angle):
+    return angle/18+2
+
+
+def change_servo_pos(pos):
+    if pos == 0:
+        servo_pwm.ChangeDutyCycle(12.4)
+    elif pos == 180:
+        servo_pwm.ChangeDutyCycle(2.6)
+    else:
+        duty = angle_to_duty(pos)
+        servo_pwm.ChangeDutyCycle(duty)
 
 
 def setup():
@@ -52,6 +74,8 @@ def setup():
     GPIO.setup(redPin, GPIO.OUT)
     GPIO.setup(greenPin, GPIO.OUT)
     GPIO.setup(bluePin, GPIO.OUT)
+    GPIO.setup(indoor_lightPin, GPIO.OUT)
+    GPIO.setup(outdoor_lightPin, GPIO.OUT)
 
     GPIO.setup(button, GPIO.IN, pull_up_down=GPIO.PUD_UP)
     GPIO.add_event_detect(button, GPIO.FALLING, callback=button_pressed_callback, bouncetime=200)
@@ -67,11 +91,14 @@ def button_pressed_callback(channel):
 
 
 def led():
+    GPIO.output(outdoor_lightPin, GPIO.HIGH)
+    GPIO.output(indoor_lightPin, GPIO.HIGH)
     while not kill:
         if not presence:
             GPIO.output(redPin, GPIO.LOW)
             GPIO.output(greenPin, GPIO.LOW)
             GPIO.output(bluePin, GPIO.LOW)
+            time.sleep(1)
             continue
         sem.acquire()
         if color == "blue":
@@ -102,6 +129,7 @@ def motor():
     while not kill:
         if not presence:
             pwm.ChangeDutyCycle(0)
+            time.sleep(1)
             continue
         if temperature:
             upper_bound = 24
@@ -141,8 +169,9 @@ def weatherSensor():
     current_hum = 0
     current_temp = 0
     while not kill:
-        #if not presence:
-            #continue
+        if not presence:
+            time.sleep(1)
+            continue
         global temperature
         today = date.today()
         now = datetime.datetime.now().time()
@@ -162,6 +191,14 @@ def weatherSensor():
         time.sleep(1)
 
 
+def blind():
+    while not kill:
+        angle = random.randint(0, 180)
+        print(f"{angle=}")
+        change_servo_pos(angle)
+        time.sleep(1)
+
+
 def destroy():
     GPIO.cleanup()
 
@@ -176,9 +213,17 @@ def on_connect(client, userdata, flags, rc):
 
 
 def on_message(client, userdata, msg):
-    global room_number
-    room_number = msg.payload.decode()
-    print("Room number received as:", room_number)
+    print("Message received in MQTT 1884", msg.topic," with message", msg.payload.decode())
+    topic = msg.topic.split('/')
+    if "config" in topic:
+        global is_connected
+        is_connected = True
+    elif "command" in topic:
+        if topic[-1] == "temperature":
+            global sensors
+            print("Received temperature command")
+            payload = json.loads(msg.payload)
+            sensors["temperature"]["temperature"] = payload["mode"]
 
 
 def on_publish(client, userdata, result):
@@ -207,9 +252,11 @@ if __name__ == "__main__":
             motor_thread = threading.Thread(target=motor)
             rgb_thread = threading.Thread(target=led)
             sensor_thread = threading.Thread(target=weatherSensor)
+            blind_thread = threading.Thread(target=blind)
             motor_thread.start()
             rgb_thread.start()
             sensor_thread.start()
+            blind_thread.start()
             while not kill:
                 client.publish(TEMPERATURE_TOPIC, payload=str(temperature), qos=0, retain=False)
                 print("Published", str(temperature))
@@ -217,6 +264,7 @@ if __name__ == "__main__":
             motor_thread.join()
             rgb_thread.join()
             sensor_thread.join()
+            blind_thread.join()
 
     except KeyboardInterrupt:
         print("KeyboardInterrupt\n")

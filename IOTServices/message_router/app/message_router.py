@@ -1,10 +1,13 @@
 import json, os
+import threading
+
+from flask import Flask, request
+from flask_cors import CORS
 import paho.mqtt.client as mqtt
 import requests
-
 MQTT_SERVER = os.getenv("MQTT_SERVER_ADDRESS")
-MQTT_PORT = 1883
-
+MQTT_PORT = int(os.getenv("MQTT_SERVER_PORT"))
+app = Flask(__name__)
 TELEMETRY_TOPIC = "hotel/rooms/+/telemetry/"
 TEMPERATURE_TOPIC = TELEMETRY_TOPIC + "temperature"
 AIR_CONDITIONER_TOPIC = TELEMETRY_TOPIC + "air_conditioner"
@@ -33,6 +36,7 @@ def on_connect(client, userdata, flags, rc):
 
     client.subscribe(ALL_TOPICS)
     client.subscribe(CONFIG_TOPIC)
+    # subscribe to all command topics
     print("Subscribed to all")
     print("Subscribed to ", CONFIG_TOPIC)
 
@@ -51,20 +55,44 @@ def on_message(client, userdata, msg):
             print("Published", room_name, "at TOPIC", msg.topic + "/room")
 
     if "telemetry" in topic:
-        requests.post(
-            API_URL,
-            json={"room":room_name,"type":topic[-1],"value":msg.payload.decode()}
-        )
+        room_name = topic[2]
+        if topic[-1] == "temperature":
+            requests.post(
+                API_URL,
+                json={"room": room_name, "type": topic[-1], "value": msg.payload.decode()}
+            )
 
-def connect_mqtt():
-    global MQTT_SERVER, MQTT_PORT
+def send_command(params):
+    type_dev = params["type"]
+    value = params["value"]
+    room = params["room"]
+    topic = "hotel/rooms"+room+"/command/air-conditioner"
+    if type_dev == "air-conditioner-mode":
+        client.publish(topic,payload=json.dumps({"mode":value}), qos=0, retain=True)
+        print("Command message has been sent through "+topic)
+        return {"response":"Message sent successfully"}, 200
+    else:
+        return {"response":"Incorrect type param"},401
+
+@app.route('/device_state', methods=['POST'])
+def device_state():
+    if request.method == 'POST':
+        params = request.get_json()
+        return send_command(params)
+
+
+def mqtt_listener():
+    client.loop_forever()
+
+if __name__ == "__main__":
+    client = mqtt.Client()
     client.username_pw_set(username="dso_server", password="dso_password")
     client.on_connect = on_connect
     client.on_message = on_message
     client.connect(MQTT_SERVER, MQTT_PORT, 60)
-
-
-if __name__ == "__main__":
-    client = mqtt.Client()
-    connect_mqtt()
+    t1 = threading.Thread(target=mqtt_listener())
+    t1.setDaemon(True)
+    t1.start()
+    CORS(app)
+    app.run(host=os.getenv("API_HOST"),port=int(os.getenv("API_PORT")), debug=True)
     client.loop_forever()
