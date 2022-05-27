@@ -43,4 +43,4 @@ def get_device_state():
         )
         mycursor.execute(sql, values)
         result = mycursor.fetchall()
-        return result[0]
+        return result
