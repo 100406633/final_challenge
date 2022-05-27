@@ -5,11 +5,6 @@ COPY /app /etc/usr/src/app
 WORKDIR /etc/usr/src/app
 
 RUN pip install paho-mqtt requests Flask Flask-Cors
-#RUN pip install requests
-#
-#RUN pip install Flask
-#
-#RUN pip install Flask-Cors
 
 ENTRYPOINT ["python"]
 CMD ["message_router.py"]

@@ -17,8 +17,7 @@ def device_state():
         return json.dumps(r.json()), r.status_code
     elif request.method == 'GET':
         r = requests.get(DATA_INGESTION_API_URL+"/device_state")
-        print("r =", r, file=sys.stderr)
-        print(type(r))
+        print("r =", r, "type:", type(r), file=sys.stderr)
         return json.dumps(r.json()), r.status_code #check this
     else:
         return "unexpected error in backend"
