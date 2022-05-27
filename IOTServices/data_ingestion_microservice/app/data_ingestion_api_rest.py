@@ -21,17 +21,15 @@ def device_state():
         return {"response": f"{mycursor.rowcount} records inserted"},200
     elif request.method == 'GET':
         print("GET", file=sys.stderr)
-        # params = request.get_json()
-        # print("after request.get_json()", file=sys.stderr)
-        # print(params, file=sys.stderr)
-        # if len(params) != 3:
-        #     return {"response": "Incorrect parameters"}, 401
         myselect = get_device_state()
         print(myselect, file=sys.stderr)
-        return [{"room": myselect[0], "type": myselect[1], "value": myselect[2]}]
+        data = {i: {"room": myselect[i][0], "type": myselect[i][1], "value": myselect[i][2]}
+                for i in range(len(myselect))}
+        print("data:\n", data, file=sys.stderr)
+        return data
+        # return {1: {"room": myselect[0], "type": myselect[1], "value": myselect[2]}}
 
 
 HOST = os.getenv("HOST")
 PORT = os.getenv("PORT")
-app.run(host= HOST, port= PORT, debug=True)
-
+app.run(host=HOST, port=PORT, debug=True)
