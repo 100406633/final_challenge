@@ -1,6 +1,6 @@
 from flask import Flask, request
 from flask_cors import CORS
-import os, requests, json
+import os, requests, json, sys
 
 app = Flask(__name__)
 CORS(app)
@@ -16,6 +16,8 @@ def device_state():
         return json.dumps(r.json()),r.status_code
     elif request.method == 'GET':
         r = requests.get(DATA_INGESTION_API_URL+"/device_state")
+        print(r, file=sys.stderr)
+        print(type(r))
         return json.dumps(r.json()),r.status_code #check this
     else:
         return "unexpected error in backend"
