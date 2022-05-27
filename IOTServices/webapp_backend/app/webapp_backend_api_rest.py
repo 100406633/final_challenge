@@ -14,12 +14,12 @@ def device_state():
             MESSAGE_ROUTER_API_URL+"/device_state",
             json=params
         )
-        return json.dumps(r.json()),r.status_code
+        return json.dumps(r.json()), r.status_code
     elif request.method == 'GET':
         r = requests.get(DATA_INGESTION_API_URL+"/device_state")
-        print(r, file=sys.stderr)
+        print("r =", r, file=sys.stderr)
         print(type(r))
-        return json.dumps(r.json()),r.status_code #check this
+        return json.dumps(r.json()), r.status_code #check this
     else:
         return "unexpected error in backend"
 

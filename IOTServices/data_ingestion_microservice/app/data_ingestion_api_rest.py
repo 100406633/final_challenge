@@ -8,6 +8,7 @@ import sys
 app = Flask(__name__)
 CORS(app)
 
+
 @app.route('/device_state',methods=['GET','POST'])
 def device_state():
     if request.method == 'POST':
@@ -15,16 +16,16 @@ def device_state():
         params = request.get_json()
         print("after request.get_json()", file=sys.stderr)
         if len(params) != 3:
-            return {"response":"Incorrect parameters"}, 401
+            return {"response": "Incorrect parameters"}, 401
         mycursor = insert_device_state(params)
-        return {"response":f"{mycursor.rowcount} records inserted"},200
+        return {"response": f"{mycursor.rowcount} records inserted"},200
     elif request.method == 'GET':
         print("GET", file=sys.stderr)
         params = request.get_json()
         print("after request.get_json()", file=sys.stderr)
         print(params, file=sys.stderr)
         if len(params) != 3:
-            return {"response":"Incorrect parameters"}, 401
+            return {"response": "Incorrect parameters"}, 401
         myselect = get_device_state(params)
         print(myselect, file=sys.stderr)
         return myselect
