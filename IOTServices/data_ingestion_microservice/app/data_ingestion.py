@@ -35,8 +35,10 @@ def get_device_state():
     mydb = connect_database()
     with mydb.cursor() as mycursor:
         sql = "WITH a AS (SELECT room, type, value, TIMESTAMPDIFF(SECOND, date, CURRENT_TIMESTAMP) AS diff FROM device_state), " \
-              "b AS (SELECT room, type, value, MIN(diff) FROM a GROUP BY (room, type, value)) " \
-              "SELECT room, type, value FROM b"
+              "SELECT room, type, value FROM a"
+        # sql = "WITH a AS (SELECT room, type, value, TIMESTAMPDIFF(SECOND, date, CURRENT_TIMESTAMP) AS diff FROM device_state), " \
+        #       "b AS (SELECT room, type, value, MIN(diff) FROM a GROUP BY (room, type, value)) " \
+        #       "SELECT room, type, value FROM b"
         # sql = "SELECT room,type,value FROM device_state WHERE room=%s AND type=%s ORDER BY date desc limit 1"
         # sql = "SELECT room,type,value FROM device_state WHERE room='"+ str(params['room']) + "' and type ='" + str(params['type']) + "' ORDER BY date desc limit 1"
         print(f"sql = {sql}", file=sys.stderr)
