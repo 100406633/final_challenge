@@ -7,7 +7,6 @@ MQTT_1_PORT = int(os.getenv("MQTT_1_SERVER_PORT"))
 MQTT_2_PORT = int(os.getenv("MQTT_2_SERVER_PORT"))
 
 
-
 json_temperature = []
 json_air = []
 json_blind = []
@@ -99,7 +98,7 @@ def connect_mqtt_1883():
     client.on_connect = on_connect_1883
     client.on_publish = on_publish_1883
     client.on_message = on_message_1883
-    client.on_disconnect = on_disconnect_1883
+    # client.on_disconnect = on_disconnect_1883
     client.connect(MQTT_SERVER, MQTT_1_PORT, 60)
     client.loop_start()
     while room_number == "":
@@ -159,7 +158,7 @@ def connect_mqtt_1884():
     client.on_connect = on_connect_1884
     client.on_publish = on_publish_1884
     client.on_message = on_message_1884
-    client.on_disconnect = on_disconnect_1884
+    # client.on_disconnect = on_disconnect_1884
 
     while room_number == "":
         print("WAITING ROOM NUMBER IN THREAD", threading.currentThread().ident)
