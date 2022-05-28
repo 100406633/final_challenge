@@ -10,7 +10,7 @@ from openpyxl import load_workbook
 from time import sleep
 import json
 
-MQTT_SERVER = "34.141.18.88"
+MQTT_SERVER = "34.141.27.32"
 MQTT_PORT = 1884
 room_number = "Room1"
 TELEMETRY_TOPIC = f"hotel/physical_rooms/{room_number}/telemetry/"
