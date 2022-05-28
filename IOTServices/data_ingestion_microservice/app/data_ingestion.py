@@ -34,17 +34,17 @@ def insert_device_state(params):
 def get_device_state():
     mydb = connect_database()
     with mydb.cursor() as mycursor:
-        sql = "WITH a AS (SELECT room, type, value, TIMESTAMPDIFF(SECOND, date, CURRENT_TIMESTAMP) ALIAS diff FROM device_state), " \
-              "b AS (SELECT room, type, value, MIN(diff) FROM a GROUP BY (room, type, value)) " \
-              "SELECT room, type, value FROM b"
-        # sql = "SELECT room,type,value FROM device_state WHERE room=%s AND type=%s ORDER BY date desc limit 1"
+        # sql = "WITH a AS (SELECT room, type, value, TIMESTAMPDIFF(SECOND, date, CURRENT_TIMESTAMP) ALIAS diff FROM device_state), " \
+        #       "b AS (SELECT room, type, value, MIN(diff) FROM a GROUP BY (room, type, value)) " \
+        #       "SELECT room, type, value FROM b"
+        sql = "SELECT room,type,value FROM device_state WHERE room=%s AND type=%s ORDER BY date desc limit 1"
         # sql = "SELECT room,type,value FROM device_state WHERE room='"+ str(params['room']) + "' and type ='" + str(params['type']) + "' ORDER BY date desc limit 1"
         print(f"sql = {sql}", file=sys.stderr)
-        # values = (
-        #     "Room1",
-        #     "temperature"
-        # )
-        mycursor.execute(sql)
-        # mycursor.execute(sql, values)
+        values = (
+            "Room1",
+            "temperature"
+        )
+        mycursor.execute(sql, values)
+        # mycursor.execute(sql)
         result = mycursor.fetchall()
         return result
