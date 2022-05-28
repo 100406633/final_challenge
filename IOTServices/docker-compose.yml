@@ -31,7 +31,7 @@ services:
       - mqtt-1
       - mqtt-2
   mariaDB:
-    image: 'mariadb:latest'
+    image: 'mariadb:10.7'
     environment:
       - MYSQL_ROOT_PASSWORD=dso_db_root_password
 
