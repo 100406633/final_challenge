@@ -118,7 +118,7 @@ def connect_mqtt_1884():
     client.on_message = on_message_1884
     # client.on_disconnect = on_disconnect_1884
 
-    while not connect_raspberry and room_number == "":
+    while not connect_raspberry or room_number == "":
         print(f"WAITING PHYSICAL ROOM NUMBER IN THREAD {threading.currentThread().ident}")
         time.sleep(1)
 
