@@ -83,8 +83,9 @@ if __name__ == "__main__":
     client.on_message = on_message
     client.connect(MQTT_SERVER, MQTT_PORT, 60)
 
-    listener_thread = threading.Thread(target=mqtt_listener, daemon=True)
-    listener_thread.start()
+    # listener_thread = threading.Thread(target=mqtt_listener, daemon=True)
+    # listener_thread.start()
+    mqtt_listener()
 
     CORS(app)
     app.run(host=os.getenv("API_HOST"), port=int(os.getenv("API_PORT")), debug=True)
