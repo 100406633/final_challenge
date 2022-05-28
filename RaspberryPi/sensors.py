@@ -1,60 +1,20 @@
-import RPi.GPIO as GPIO
-import threading
-import time
-import Adafruit_DHT
-import datetime
-import paho.mqtt.client as mqtt
 import random
-from datetime import date
-from openpyxl import load_workbook
-from time import sleep
 import json
-
-MQTT_SERVER = "34.141.27.32"
-MQTT_PORT = 1884
-room_number = "Room1"
-TELEMETRY_TOPIC = f"hotel/physical_rooms/{room_number}/telemetry/"
-TEMPERATURE_TOPIC = TELEMETRY_TOPIC + "temperature"
-AIR_CONDITIONER_TOPIC = TELEMETRY_TOPIC + "air_conditioner"
-BLIND_TOPIC = TELEMETRY_TOPIC + "blind"
-CONFIG_TOPIC = f"hotel/physical_rooms/{room_number}/config"
-
-GPIO.setwarnings(False)
-Motor1A = 24
-Motor1B = 23
-Motor1E = 25
-servoPin = 18
-
-GPIO.setmode(GPIO.BCM)
-GPIO.setup(Motor1A, GPIO.OUT)
-pwm = GPIO.PWM(Motor1A, 100)
-pwm.start(0)
-
-GPIO.setup(servoPin, GPIO.OUT)
-servo_pwm = GPIO.PWM(servoPin, 50)
-servo_pwm.start(0)
-
-color = ""
-presence = False
-kill = False
-humidity = 0
-temperature = 0
-
-redPin = 13
-greenPin = 20
-bluePin = 12
-button = 16
-indoor_lightPin = 21
-outdoor_lightPin = 5
-
-sem = threading.Semaphore(2)
+import time
+import datetime
+import threading
+import Adafruit_DHT
+import paho.mqtt.client as mqtt
+import RPi.GPIO as GPIO
+from openpyxl import load_workbook
 
 
 def angle_to_duty(angle):
-    return angle/18+2
+    return angle/18 + 2
 
 
 def change_servo_pos(pos):
+    global pwm, servo_pwm
     if pos == 0:
         servo_pwm.ChangeDutyCycle(12.4)
     elif pos == 180:
@@ -65,22 +25,33 @@ def change_servo_pos(pos):
 
 
 def setup():
+    global pwm, servo_pwm
     GPIO.setmode(GPIO.BCM)
-    GPIO.setup(Motor1A, GPIO.OUT)
-    GPIO.setup(Motor1B, GPIO.OUT)
-    GPIO.setup(Motor1E, GPIO.OUT)
+    GPIO.setwarnings(False)
 
-    GPIO.setup(redPin, GPIO.OUT)
-    GPIO.setup(greenPin, GPIO.OUT)
-    GPIO.setup(bluePin, GPIO.OUT)
-    GPIO.setup(indoor_lightPin, GPIO.OUT)
-    GPIO.setup(outdoor_lightPin, GPIO.OUT)
+    GPIO.setup(motor_pin_a, GPIO.OUT)
+    pwm = GPIO.PWM(motor_pin_a, 100)
+    pwm.start(0)
 
-    GPIO.setup(button, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-    GPIO.add_event_detect(button, GPIO.FALLING, callback=button_pressed_callback, bouncetime=200)
+    GPIO.setup(servo_pin, GPIO.OUT)
+    servo_pwm = GPIO.PWM(servo_pin, 50)
+    servo_pwm.start(0)
 
-    GPIO.output(Motor1B, GPIO.LOW)
-    GPIO.output(Motor1E, GPIO.HIGH)
+    GPIO.setup(motor_pin_a, GPIO.OUT)
+    GPIO.setup(motor_pin_b, GPIO.OUT)
+    GPIO.setup(motor_pin_energy, GPIO.OUT)
+
+    GPIO.setup(red_pin, GPIO.OUT)
+    GPIO.setup(green_pin, GPIO.OUT)
+    GPIO.setup(blue_pin, GPIO.OUT)
+    GPIO.setup(indoor_light_pin, GPIO.OUT)
+    GPIO.setup(outdoor_light_pin, GPIO.OUT)
+
+    GPIO.setup(button_pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+    GPIO.add_event_detect(button_pin, GPIO.FALLING, callback=button_pressed_callback, bouncetime=200)
+
+    GPIO.output(motor_pin_b, GPIO.LOW)
+    GPIO.output(motor_pin_energy, GPIO.HIGH)
 
 
 def button_pressed_callback(channel):
@@ -90,50 +61,53 @@ def button_pressed_callback(channel):
 
 
 def led():
-    GPIO.output(outdoor_lightPin, GPIO.HIGH)
-    GPIO.output(indoor_lightPin, GPIO.HIGH)
+    GPIO.output(outdoor_light_pin, GPIO.HIGH)
+    GPIO.output(indoor_light_pin, GPIO.HIGH)
     while not kill:
         if not presence:
-            GPIO.output(redPin, GPIO.LOW)
-            GPIO.output(greenPin, GPIO.LOW)
-            GPIO.output(bluePin, GPIO.LOW)
+            GPIO.output(red_pin, GPIO.LOW)
+            GPIO.output(green_pin, GPIO.LOW)
+            GPIO.output(blue_pin, GPIO.LOW)
             time.sleep(1)
             continue
+
         sem.acquire()
+        global color
         if color == "blue":
             print("led blue")
-            GPIO.output(redPin, GPIO.LOW)
-            GPIO.output(greenPin, GPIO.LOW)
-            GPIO.output(bluePin, GPIO.HIGH)
-            sleep(1)
+            GPIO.output(red_pin, GPIO.LOW)
+            GPIO.output(green_pin, GPIO.LOW)
+            GPIO.output(blue_pin, GPIO.HIGH)
+            time.sleep(1)
         elif color == "green":
             print("led green")
-            GPIO.output(redPin, GPIO.LOW)
-            GPIO.output(greenPin, GPIO.HIGH)
-            GPIO.output(bluePin, GPIO.LOW)
-            sleep(1)
+            GPIO.output(red_pin, GPIO.LOW)
+            GPIO.output(green_pin, GPIO.HIGH)
+            GPIO.output(blue_pin, GPIO.LOW)
+            time.sleep(1)
 
         elif color == "red":
             print("led red")
-            GPIO.output(redPin, GPIO.HIGH)
-            GPIO.output(greenPin, GPIO.LOW)
-            GPIO.output(bluePin, GPIO.LOW)
-            sleep(1)
+            GPIO.output(red_pin, GPIO.HIGH)
+            GPIO.output(green_pin, GPIO.LOW)
+            GPIO.output(blue_pin, GPIO.LOW)
+            time.sleep(1)
         sem.release()
 
 
 def motor():
-    global color
+    global pwm, servo_pwm, color
     color = "green"
     while not kill:
         if not presence:
             pwm.ChangeDutyCycle(0)
             time.sleep(1)
             continue
+
+        temperature = sensors["temperature"]["temperature"]
         if temperature:
             upper_bound = 24
             lower_bound = 21
-            print(temperature)
             if temperature and lower_bound < temperature < upper_bound:
                 pwm.ChangeDutyCycle(0)
                 sem.acquire()
@@ -160,9 +134,7 @@ def motor():
                     pwm.ChangeDutyCycle(cycle)
 
 
-def weatherSensor():
-    DHT_SENSOR = Adafruit_DHT.DHT11
-    DHT_PIN = 4
+def weather_sensor():
     wb = load_workbook('/home/pi/Desktop/weather.xlsx')
     sheet = wb['Sheet1']
     current_hum = 0
@@ -171,22 +143,22 @@ def weatherSensor():
         if not presence:
             time.sleep(1)
             continue
-        global temperature
-        today = date.today()
-        now = datetime.datetime.now().time()
-        humidity, temperature = Adafruit_DHT.read_retry(DHT_SENSOR, DHT_PIN)
-        dif_humidity = abs(current_hum - humidity)
-        dif_temperature = abs(current_temp - temperature)
-        if dif_humidity > 0.1 and dif_temperature > 0.1:
-            row = (today, now, temperature, "961.9", humidity)
-            sheet.append(row)
-            wb.save('/home/pi/Desktop/weather.xlsx')
-            print("Temp = {0: 0.1f}C Humidity = {1: 0.1f} %".format(temperature, humidity))
-            current_hum = humidity
-            current_temp = temperature
 
+        global sensors
+        today = datetime.date.today()
+        now = datetime.datetime.now().time()
+        humidity, temperature = Adafruit_DHT.read_retry(Adafruit_DHT.DHT11, dht_pin)
         if humidity and temperature:
-            print("Temp = {0: 0.1f}C Humidity = {1: 0.1f} %".format(temperature, humidity))
+            dif_humidity = abs(current_hum - humidity)
+            dif_temperature = abs(current_temp - temperature)
+            if dif_humidity > 0.1 and dif_temperature > 0.1:
+                row = (today, now, temperature, "961.9", humidity)
+                sheet.append(row)
+                wb.save('/home/pi/Desktop/weather.xlsx')
+                print("Temp = {0: 0.1f}C Humidity = {1: 0.1f} %".format(temperature, humidity))
+                current_hum = humidity
+                current_temp = temperature
+                sensors["temperature"]["temperature"] = temperature
         time.sleep(1)
 
 
@@ -207,12 +179,10 @@ def on_connect(client, userdata, flags, rc):
     print("Digital Twin connected with code:", rc)
     client.publish(CONFIG_TOPIC, payload=room_number, qos=0, retain=False)
     print("Sent room number", room_number, "to topic", CONFIG_TOPIC)
-    # client.subscribe(CONFIG_TOPIC + "/room")
-    # print(f"Subscribed to, {CONFIG_TOPIC}/room")
 
 
 def on_message(client, userdata, msg):
-    print("Message received in MQTT 1884", msg.topic," with message", msg.payload.decode())
+    print(f"Message received in MQTT 1884 {msg.topic} with message {msg.payload.decode()}")
     topic = msg.topic.split('/')
     if "config" in topic:
         global is_connected
@@ -226,7 +196,6 @@ def on_message(client, userdata, msg):
 
 
 def on_publish(client, userdata, result):
-    pass
     print("data published")
 
 
@@ -240,35 +209,96 @@ def connect_mqtt():
 
 
 if __name__ == "__main__":
+    MQTT_SERVER = "34.141.18.88"
+    MQTT_PORT = 1884
+    is_connected = False
+
+    room_number = "Room1"
+    CONFIG_TOPIC = f"hotel/rooms/{room_number}/config"
+    TELEMETRY_TOPIC = f"hotel/rooms/{room_number}/telemetry/"
+    TEMPERATURE_TOPIC = f"{TELEMETRY_TOPIC}temperature"
+    AIR_CONDITIONER_TOPIC = f"{TELEMETRY_TOPIC}air_conditioner"
+    BLIND_TOPIC = f"{TELEMETRY_TOPIC}blind"
+
+    sensors = {
+        "indoor_light": {
+            "active": True,
+            "level": random.randint(0, 100)
+        },
+        "outside_light": {
+            "active": True,
+            "level": random.randint(0, 100)
+        },
+        "blind": {
+            "is_open": True,
+            "level": random.randint(0, 180)
+        },
+        "air_conditioner": {
+            "active": True,
+            "level": random.randint(10, 30),
+            "mode": random.randint(0, 2)
+        },
+        "presence": {
+            "active": True,
+            "detected": True if random.randint(0, 1) == 1 else False
+        },
+        "temperature": {
+            "active": True,
+            "temperature": random.randint(0, 40)
+        }
+    }
+
+    # pwm = None
+    # servo_pwm = None
+    motor_pin_a = 24
+    motor_pin_b = 23
+    motor_pin_energy = 25
+    servo_pin = 18
+    red_pin = 13
+    green_pin = 20
+    blue_pin = 12
+    button_pin = 16
+    indoor_light_pin = 21
+    outdoor_light_pin = 5
+    dht_pin = 4
+
+    color = ""
+    presence = False
+    kill = False
+    sem = threading.Semaphore(2)
+
     client = mqtt.Client()
     connect_mqtt()
     client.loop_start()
     client.publish(CONFIG_TOPIC, payload=room_number, qos=0, retain=False)
     print(f"Sent room number {room_number}, to topic {CONFIG_TOPIC}")
+
     setup()
     try:
         while True:
             motor_thread = threading.Thread(target=motor)
             rgb_thread = threading.Thread(target=led)
-            sensor_thread = threading.Thread(target=weatherSensor)
+            sensor_thread = threading.Thread(target=weather_sensor)
             blind_thread = threading.Thread(target=blind)
+
             motor_thread.start()
             rgb_thread.start()
             sensor_thread.start()
             blind_thread.start()
+
             while not kill:
-                client.publish(TEMPERATURE_TOPIC, payload=str(temperature), qos=0, retain=False)
-                print("Published", str(temperature))
+                client.publish(TEMPERATURE_TOPIC, payload=str(sensors["temperature"]["temperature"]),
+                               qos=0, retain=False)
+                print(f'Published {sensors["temperature"]["temperature"]}')
                 time.sleep(5)
+
             motor_thread.join()
             rgb_thread.join()
             sensor_thread.join()
             blind_thread.join()
 
-    except KeyboardInterrupt:
-        print("KeyboardInterrupt\n")
+    except KeyboardInterrupt as ex:
+        print(f"{ex}\n")
         kill = True
         destroy()
     client.loop_stop()
-
-
