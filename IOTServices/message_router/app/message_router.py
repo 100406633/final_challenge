@@ -6,6 +6,14 @@ import paho.mqtt.client as mqtt
 from flask import Flask, request
 from flask_cors import CORS
 
+MQTT_SERVER = os.getenv("MQTT_SERVER_ADDRESS")
+MQTT_PORT = int(os.getenv("MQTT_SERVER_PORT"))
+
+ALL_TOPICS = "hotel/rooms/+/telemetry/+"
+CONFIG_TOPIC = "hotel/rooms/+/config"
+
+API_URL = f"http://{os.getenv('DATA_INGESTION_API_HOST')}:{os.getenv('DATA_INGESTION_API_PORT')}/device_state"
+
 app = Flask(__name__)
 
 
@@ -68,14 +76,6 @@ def mqtt_listener():
 
 
 if __name__ == "__main__":
-    MQTT_SERVER = os.getenv("MQTT_SERVER_ADDRESS")
-    MQTT_PORT = int(os.getenv("MQTT_SERVER_PORT"))
-
-    ALL_TOPICS = "hotel/rooms/+/telemetry/+"
-    CONFIG_TOPIC = "hotel/rooms/+/config"
-
-    API_URL = f"http://{os.getenv('DATA_INGESTION_API_HOST')}:{os.getenv('DATA_INGESTION_API_PORT')}/device_state"
-
     index_room = 1
     saved_rooms = {}
 
