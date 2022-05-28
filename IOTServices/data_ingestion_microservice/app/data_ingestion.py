@@ -38,10 +38,11 @@ def get_device_state():
         # sql = "SELECT room,type,value FROM device_state WHERE room=%s AND type=%s ORDER BY date desc limit 1"
         # sql = "SELECT room,type,value FROM device_state WHERE room='"+ str(params['room']) + "' and type ='" + str(params['type']) + "' ORDER BY date desc limit 1"
         print(f"sql = {sql}", file=sys.stderr)
-        values = (
-            "Room1",
-            "temperature"
-        )
-        mycursor.execute(sql, values)
+        # values = (
+        #     "Room1",
+        #     "temperature"
+        # )
+        mycursor.execute(sql)
+        # mycursor.execute(sql, values)
         result = mycursor.fetchall()
         return result
