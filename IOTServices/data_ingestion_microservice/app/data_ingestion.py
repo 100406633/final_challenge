@@ -34,7 +34,7 @@ def insert_device_state(params):
 def get_device_state():
     mydb = connect_database()
     with mydb.cursor() as mycursor:
-        sql = "WITH a AS (SELECT room, type, value, TIMESTAMPDIFF(SECOND, date, CURRENT_TIMESTAMP) AS diff FROM device_state), " \
+        sql = "WITH a AS (SELECT room, type, value, TIMESTAMPDIFF(SECOND, date, CURRENT_TIMESTAMP) AS diff FROM device_state) " \
               "SELECT room, type, value FROM a"
         # sql = "WITH a AS (SELECT room, type, value, TIMESTAMPDIFF(SECOND, date, CURRENT_TIMESTAMP) AS diff FROM device_state), " \
         #       "b AS (SELECT room, type, value, MIN(diff) FROM a GROUP BY (room, type, value)) " \
