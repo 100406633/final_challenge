@@ -72,7 +72,7 @@ if __name__ == "__main__":
     ALL_TOPICS = "hotel/rooms/+/telemetry/+"
     CONFIG_TOPIC = "hotel/rooms/+/config"
 
-    API_URL = "http://data_ingestion_microservice:5000/device_state"
+    API_URL = f"http://{os.getenv('DATA_INGESTION_API_HOST')}:{os.getenv('DATA_INGESTION_API_PORT')}/device_state"
 
     index_room = 1
     saved_rooms = {}
@@ -88,3 +88,4 @@ if __name__ == "__main__":
 
     CORS(app)
     app.run(host=os.getenv("API_HOST"), port=int(os.getenv("API_PORT")), debug=True)
+    print("message_router set up")

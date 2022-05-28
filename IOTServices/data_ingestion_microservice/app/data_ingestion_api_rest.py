@@ -23,6 +23,7 @@ def device_state():
             return {"response": "Incorrect parameters"}, 401
         mycursor = insert_device_state(params)
         return {"response": f"{mycursor.rowcount} records inserted"}, 200
+
     elif request.method == 'GET':
         print("GET", file=sys.stderr)
         myselect = get_device_state()
