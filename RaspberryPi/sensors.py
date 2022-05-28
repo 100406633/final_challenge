@@ -55,16 +55,17 @@ def setup():
 
 
 def button_pressed_callback(channel):
-    global presence
-    presence = not presence
-    print(f"changed to {presence}\n")
+    global sensors
+    sensors["presence"]["detected"] = not sensors["presence"]["detected"]
+    print(f'changed to {sensors["presence"]["detected"]}\n')
 
 
 def led():
+    global sensors
     GPIO.output(outdoor_light_pin, GPIO.HIGH)
     GPIO.output(indoor_light_pin, GPIO.HIGH)
     while not kill:
-        if not presence:
+        if not sensors["presence"]["detected"]:
             GPIO.output(red_pin, GPIO.LOW)
             GPIO.output(green_pin, GPIO.LOW)
             GPIO.output(blue_pin, GPIO.LOW)
@@ -96,10 +97,10 @@ def led():
 
 
 def motor():
-    global pwm, servo_pwm, color
+    global pwm, servo_pwm, color, sensors
     color = "green"
     while not kill:
-        if not presence:
+        if not sensors["presence"]["detected"]:
             pwm.ChangeDutyCycle(0)
             time.sleep(1)
             continue
@@ -135,16 +136,16 @@ def motor():
 
 
 def weather_sensor():
+    global sensors
     wb = load_workbook('/home/pi/Desktop/weather.xlsx')
     sheet = wb['Sheet1']
     current_hum = 0
     current_temp = 0
     while not kill:
-        if not presence:
+        if not sensors["presence"]["detected"]:
             time.sleep(1)
             continue
 
-        global sensors
         today = datetime.date.today()
         now = datetime.datetime.now().time()
         humidity, temperature = Adafruit_DHT.read_retry(Adafruit_DHT.DHT11, dht_pin)
@@ -234,13 +235,12 @@ if __name__ == "__main__":
             "level": random.randint(0, 180)
         },
         "air_conditioner": {
-            "active": True,
+            "active": random.randint(0, 2),
             "level": random.randint(10, 30),
-            "mode": random.randint(0, 2)
         },
         "presence": {
             "active": True,
-            "detected": True if random.randint(0, 1) == 1 else False
+            "detected": False
         },
         "temperature": {
             "active": True,
@@ -263,7 +263,6 @@ if __name__ == "__main__":
     dht_pin = 4
 
     color = ""
-    presence = False
     kill = False
     sem = threading.Semaphore(2)
 

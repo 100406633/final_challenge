@@ -32,7 +32,7 @@ def on_message_1883(client, userdata, msg):
         global sensors
         print(f"Air-conditioner command received {msg.payload}")
         payload = json.loads(msg.payload)  #this ain't gonna work
-        sensors["air_conditioner"]["mode"] = payload["mode"]
+        sensors["air_conditioner"]["active"] = payload["mode"]
 
 
 def on_publish_1883(client, userdata, result):
@@ -129,11 +129,11 @@ def connect_mqtt_1884():
     current_air_conditioner_mode = 0
 
     while True:
-        if sensors["air_conditioner"]["mode"] != current_air_conditioner_mode:
+        if sensors["air_conditioner"]["active"] != current_air_conditioner_mode:
             client.publish(air_conditioner_command_topic,
-                           payload=json.dumps({"mode": sensors["air_conditioner"]["mode"]}), qos=0, retain=False)
-            print(f'Published {sensors["air_conditioner"]["mode"]} in {air_conditioner_command_topic}')
-            current_air_conditioner_mode = sensors["air_conditioner"]["mode"]
+                           payload=json.dumps({"mode": sensors["air_conditioner"]["active"]}), qos=0, retain=False)
+            print(f'Published {sensors["air_conditioner"]["active"]} in {air_conditioner_command_topic}')
+            current_air_conditioner_mode = sensors["air_conditioner"]["active"]
         time.sleep(1)
 
     client.loop_stop()
@@ -151,9 +151,8 @@ def randomize_sensors():
         sensors["blind"]["is_open"] = True if random.randint(0, 1) == 1 else False
         sensors["blind"]["level"] = random.randint(0, 180)
 
-        sensors["air_conditioner"]["active"] = True if random.randint(0, 1) == 1 else False
+        sensors["air_conditioner"]["active"] = random.randint(0, 2)
         sensors["air_conditioner"]["level"] = random.randint(0, 100)
-        sensors["air_conditioner"]["mode"] = random.randint(0, 2)
 
         sensors["presence"]["active"] = True if random.randint(0, 1) == 1 else False
         sensors["presence"]["detected"] = True if random.randint(0, 1) == 1 else False
@@ -191,9 +190,8 @@ if __name__ == "__main__":
             "level": random.randint(0, 180)
         },
         "air_conditioner": {
-            "active": True if random.randint(0, 1) == 1 else False,
+            "active": random.randint(0, 2),
             "level": random.randint(0, 100),
-            "mode": random.randint(0, 2)
         },
         "presence": {
             "active": True if random.randint(0, 1) == 1 else False,
