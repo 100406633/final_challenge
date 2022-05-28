@@ -91,4 +91,3 @@ if __name__ == "__main__":
 
     CORS(app)
     app.run(host=os.getenv("API_HOST"), port=int(os.getenv("API_PORT")), debug=True)
-    print("message_router set up")

@@ -13,7 +13,6 @@ MESSAGE_ROUTER_API_URL = "http://"+os.getenv("MESSAGE_ROUTER_API_ADDRESS")+":"+o
 
 app = Flask(__name__)
 CORS(app)
-app.run(host=HOST, port=PORT, debug=True)
 
 
 @app.route('/device_state', methods=['GET', 'POST'])
@@ -33,3 +32,7 @@ def device_state():
 
     else:
         return "unexpected error in backend"
+
+
+# it is paramount that this line be here, below the @app.route decorator (for some reason)
+app.run(host=HOST, port=PORT, debug=True)
