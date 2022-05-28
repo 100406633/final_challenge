@@ -78,6 +78,7 @@ def connect_mqtt_1883():
 
 def on_connect_1884(client, userdata, flags, rc):
     global room_number
+    print("on_connect_1884\n")
 
     physical_room_config_topic = f"hotel/rooms/{room_number}/config"
     client.subscribe(physical_room_config_topic)
@@ -162,6 +163,7 @@ def randomize_sensors():
 
         print("Set randomized sensors")
         pprint.pprint(sensors)
+        threading.Timer(RANDOMIZE_SENSORS_INTERVAL, randomize_sensors).start()
 
 
 if __name__ == "__main__":
@@ -203,7 +205,7 @@ if __name__ == "__main__":
         }
     }
 
-    threading.Timer(RANDOMIZE_SENSORS_INTERVAL, randomize_sensors).start()
+    randomize_sensors()
     mqtt_1883_thread = threading.Thread(target=connect_mqtt_1883, daemon=True)
     mqtt_1884_thread = threading.Thread(target=connect_mqtt_1884, daemon=True)
 
