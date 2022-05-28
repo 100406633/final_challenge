@@ -10,7 +10,6 @@ PORT = os.getenv("PORT")
 
 app = Flask(__name__)
 CORS(app)
-app.run(host=HOST, port=PORT, debug=True)
 
 
 @app.route('/device_state', methods=['GET', 'POST'])
@@ -32,3 +31,6 @@ def device_state():
                 for i in range(len(myselect))}
         print("data:\n", data, file=sys.stderr)
         return data
+
+
+app.run(host=HOST, port=PORT, debug=True)
