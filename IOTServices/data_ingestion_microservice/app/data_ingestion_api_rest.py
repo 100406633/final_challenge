@@ -27,7 +27,6 @@ def device_state():
                 for i in range(len(myselect))}
         print("data:\n", data, file=sys.stderr)
         return data
-        # return {1: {"room": myselect[0], "type": myselect[1], "value": myselect[2]}}
 
 
 HOST = os.getenv("HOST")

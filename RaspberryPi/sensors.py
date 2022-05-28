@@ -11,7 +11,7 @@ from openpyxl import load_workbook
 from time import sleep
 import json
 
-MQTT_SERVER = "34.159.22.233"
+MQTT_SERVER = "34.141.27.32"
 MQTT_PORT = 1884
 room_number = "Room1"
 TELEMETRY_TOPIC = f"hotel/physical_rooms/{room_number}/telemetry/"
@@ -27,8 +27,8 @@ Motor1E = 25
 servoPin = 18
 
 GPIO.setmode(GPIO.BCM)
-GPIO.setup(Motor1A,GPIO.OUT)
-pwm = GPIO.PWM(Motor1A,100)
+GPIO.setup(Motor1A, GPIO.OUT)
+pwm = GPIO.PWM(Motor1A, 100)
 pwm.start(0)
 
 GPIO.setup(servoPin, GPIO.OUT)
@@ -67,8 +67,8 @@ def change_servo_pos(pos):
 
 def setup():
     GPIO.setmode(GPIO.BCM)
-    GPIO.setup(Motor1A,GPIO.OUT)
-    GPIO.setup(Motor1B,GPIO.OUT)
+    GPIO.setup(Motor1A, GPIO.OUT)
+    GPIO.setup(Motor1B, GPIO.OUT)
     GPIO.setup(Motor1E, GPIO.OUT)
 
     GPIO.setup(redPin, GPIO.OUT)
@@ -135,7 +135,7 @@ def motor():
             upper_bound = 24
             lower_bound = 21
             print(temperature)
-            if temperature and temperature > lower_bound and temperature < upper_bound:
+            if temperature and lower_bound < temperature < upper_bound:
                 pwm.ChangeDutyCycle(0)
                 sem.acquire()
                 color = "green"
