@@ -35,6 +35,8 @@ def on_message(client, userdata, msg):
     elif "telemetry" in topic:
         room_name = topic[2]
         if "temperature" in topic:
+            print(f"{API_URL=}")
+            print({"room": room_name, "type": topic[-1], "value": msg.payload.decode()})
             requests.post(
                 API_URL,
                 json={"room": room_name, "type": topic[-1], "value": msg.payload.decode()}
