@@ -1,12 +1,16 @@
+import os
+import sys
 from flask import Flask, request
 from flask_cors import CORS
 from data_ingestion import insert_device_state, get_device_state
-import os
-import sys
 
+
+HOST = os.getenv("HOST")
+PORT = os.getenv("PORT")
 
 app = Flask(__name__)
 CORS(app)
+app.run(host=HOST, port=PORT, debug=True)
 
 
 @app.route('/device_state', methods=['GET', 'POST'])
@@ -18,7 +22,7 @@ def device_state():
         if len(params) != 3:
             return {"response": "Incorrect parameters"}, 401
         mycursor = insert_device_state(params)
-        return {"response": f"{mycursor.rowcount} records inserted"},200
+        return {"response": f"{mycursor.rowcount} records inserted"}, 200
     elif request.method == 'GET':
         print("GET", file=sys.stderr)
         myselect = get_device_state()
@@ -27,8 +31,3 @@ def device_state():
                 for i in range(len(myselect))}
         print("data:\n", data, file=sys.stderr)
         return data
-
-
-HOST = os.getenv("HOST")
-PORT = os.getenv("PORT")
-app.run(host=HOST, port=PORT, debug=True)

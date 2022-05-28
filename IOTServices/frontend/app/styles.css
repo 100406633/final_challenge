@@ -19,3 +19,10 @@ table#rooms td:hover {
     cursor: pointer;
 }
 
+#btn_apply {
+    background-color: green;
+}
+
+input{
+    width: 40%;
+}

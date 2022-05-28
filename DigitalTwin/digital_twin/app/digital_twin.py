@@ -1,71 +1,24 @@
-import json, os, threading, random, pprint, time, subprocess
+import random
+import os
+import time
+import json
+import subprocess
+import threading
+import pprint
 import paho.mqtt.client as mqtt
-
-RANDOMIZE_SENSORS_INTERVAL = 30
-MQTT_SERVER = os.getenv("MQTT_SERVER_ADDRESS")
-MQTT_1_PORT = int(os.getenv("MQTT_1_SERVER_PORT"))
-MQTT_2_PORT = int(os.getenv("MQTT_2_SERVER_PORT"))
-
-
-json_temperature = []
-json_air = []
-json_blind = []
-current_temperature = "0"
-temperature = 0
-current_air = "0"
-current_blind = "0"
-connect_raspberry = False
-room_number = ""
-air_conditioner_mode = ""
-current_air_conditioner_mode = ""
-AIR_CONDITIONER_COMMAND_TOPIC = ""
 
 
 def get_host_name():
-    bashCommandName = 'echo $HOSTNAME'
-    host = subprocess \
-               .check_output(['bash', '-c', bashCommandName]) \
-               .decode("utf-8")[0:-1]
-    return host
-
-
-container_id = get_host_name()
-CONFIG_TOPIC = f"hotel/rooms/{container_id}/config"
-
-sensors = {
-    "indoor_light": {
-        "active": True,
-        "level": random.randint(0, 100)
-    },
-    "outside_light": {
-        "active": True,
-        "level": random.randint(0, 100)
-    },
-    "blind": {
-        "is_open": True,
-        "level": random.randint(0, 100)
-    },
-    "air_conditioner": {
-        "active": True,
-        "level": random.randint(10, 30)
-    },
-    "presence": {
-        "active": True,
-        "detected": True if random.randint(0, 1) == 1 else False
-    },
-    "temperature": {
-        "active": True,
-        "temperature": random.randint(0, 40)
-    }
-}
+    bash_command_name = 'echo $HOSTNAME'
+    return subprocess.check_output(['bash', '-c', bash_command_name]).decode("utf-8")[0:-1]
 
 
 def on_connect_1883(client, userdata, flags, rc):
-    print("Digital Twin connected with code:", rc)
-    client.publish(CONFIG_TOPIC, payload=container_id, qos=0, retain=False)
-    print("Sent id", container_id, "to topic", CONFIG_TOPIC)
-    client.subscribe(CONFIG_TOPIC + "/room")
-    print(f"Subscribed to, {CONFIG_TOPIC}/room")
+    print(f"Digital Twin connected with code: {rc}")
+    client.publish(CONTAINER_CONFIG_TOPIC, payload=container_id, qos=0, retain=False)
+    print(f"Sent ID {container_id} to topic {CONTAINER_CONFIG_TOPIC}")
+    client.subscribe(CONTAINER_CONFIG_TOPIC + "/room")
+    print(f"Subscribed to, {CONTAINER_CONFIG_TOPIC}/room")
 
 
 def on_message_1883(client, userdata, msg):
@@ -74,13 +27,12 @@ def on_message_1883(client, userdata, msg):
     if "config" in topic:
         global room_number
         room_number = msg.payload.decode()
-        print("Room number received as:", room_number)
-    elif "command" in topic:
-        if topic[-1] == "temperature":
-            global air_conditioner_mode
-            print("Air-conditioner command received")
-            payload = json.loads(msg.payload)
-            air_conditioner_mode = payload["mode"]
+        print(f"Room number received as: {room_number}")
+    elif "command" in topic and "air-conditioner" in topic:
+        global sensors
+        print(f"Air-conditioner command received {msg.payload}")
+        payload = json.loads(msg.payload)  #this ain't gonna work
+        sensors["air_conditioner"]["mode"] = payload["mode"]
 
 
 def on_publish_1883(client, userdata, result):
@@ -92,53 +44,58 @@ def on_disconnect_1883(client, userdata, flags, rc):
 
 
 def connect_mqtt_1883():
-    global room_number, MQTT_SERVER, MQTT_1_PORT, temperature, current_temperature
+    global room_number, MQTT_SERVER, MQTT_1_PORT, sensors
     client = mqtt.Client("Client-1883")
     client.username_pw_set(username="dso_server", password="dso_password")
     client.on_connect = on_connect_1883
     client.on_publish = on_publish_1883
     client.on_message = on_message_1883
     # client.on_disconnect = on_disconnect_1883
+
     client.connect(MQTT_SERVER, MQTT_1_PORT, 60)
     client.loop_start()
+
     while room_number == "":
-        print("WAITING ROOM NUMBER IN THREAD", threading.currentThread().ident)
+        print(f"WAITING ROOM NUMBER IN THREAD {threading.currentThread().ident}")
         time.sleep(1)
 
-    TELEMETRY_TOPIC = f"hotel/rooms/{room_number}/telemetry/"
-    TEMPERATURE_TOPIC = TELEMETRY_TOPIC + "temperature"
-    AIR_CONDITIONER_TOPIC = TELEMETRY_TOPIC + "air_conditioner"
-    BLIND_TOPIC = TELEMETRY_TOPIC + "blind"
+    telemetry_topic = f"hotel/rooms/{room_number}/telemetry/"
+    temperature_topic = f"{telemetry_topic}temperature"
+    air_conditioner_topic = f"{telemetry_topic}air_conditioner"
+    blind_topic = f"{telemetry_topic}blind"
+
+    current_temperature = 0
+
     while True:
-        if temperature != current_temperature:
-            client.publish(TEMPERATURE_TOPIC, payload=temperature,qos=0,retain=False)
-            print("Published", temperature,"in", TEMPERATURE_TOPIC)
-            current_temperature = temperature
+        if sensors["temperature"]["temperature"] != current_temperature:
+            client.publish(temperature_topic, payload=str(sensors["temperature"]["temperature"]), qos=0, retain=False)
+            print(f'Published {sensors["temperature"]["temperature"]} in {temperature_topic}')
+            current_temperature = sensors["temperature"]["temperature"]
         time.sleep(1)
+
     client.loop_stop()
 
 
 def on_connect_1884(client, userdata, flags, rc):
     global room_number
 
-    PHYSICAL_ROOM_CONFIG_TOPIC = f"hotel/physical_rooms/{room_number}/config"
-    client.subscribe(PHYSICAL_ROOM_CONFIG_TOPIC)
-    print(f"Subscribed to, {PHYSICAL_ROOM_CONFIG_TOPIC}")
+    physical_room_config_topic = f"hotel/rooms/{room_number}/config"
+    client.subscribe(physical_room_config_topic)
+    print(f"Subscribed to, {physical_room_config_topic}")
 
-    RASPBERRY_TELEMETRY_TOPIC = f"hotel/physical_rooms/{room_number}/telemetry/+"
-    client.subscribe(RASPBERRY_TELEMETRY_TOPIC)
-    print(f"Subscribed to, {RASPBERRY_TELEMETRY_TOPIC}")
+    raspberry_telemetry_topic = f"hotel/rooms/{room_number}/telemetry/+"
+    client.subscribe(raspberry_telemetry_topic)
+    print(f"Subscribed to, {raspberry_telemetry_topic}")
 
 
 def on_message_1884(client, userdata, msg):
-    global temperature, room_number, connect_raspberry
+    global sensors, room_number, connect_raspberry
     print(f"Message received in MQTT-1884 {msg.topic} with message {msg.payload.decode()}")
     topic = msg.topic.split('/')
-    if topic[-1] == "temperature":
-        print("Received temperature", msg.payload.decode())
-        temperature = msg.payload.decode()
-
-    elif topic[-1] == "config":
+    if "temperature" in topic:
+        print(f"Received temperature {msg.payload.decode()}")
+        sensors["temperature"]["temperature"] = int(msg.payload.decode())
+    elif "config" in topic:
         connect_raspberry = True
         room_number = msg.payload.decode()
 
@@ -152,7 +109,7 @@ def on_disconnect_1884(client, userdata, flags, rc):
 
 
 def connect_mqtt_1884():
-    global room_number, MQTT_SERVER, MQTT_2_PORT, AIR_CONDITIONER_COMMAND_TOPIC
+    global room_number, MQTT_SERVER, MQTT_2_PORT, sensors, connect_raspberry
     client = mqtt.Client("Client-1884")
     client.username_pw_set(username="dso_server", password="dso_password")
     client.on_connect = on_connect_1884
@@ -160,69 +117,95 @@ def connect_mqtt_1884():
     client.on_message = on_message_1884
     # client.on_disconnect = on_disconnect_1884
 
-    while room_number == "":
-        print("WAITING ROOM NUMBER IN THREAD", threading.currentThread().ident)
+    while not connect_raspberry and room_number == "":
+        print(f"WAITING PHYSICAL ROOM NUMBER IN THREAD {threading.currentThread().ident}")
         time.sleep(1)
+
     client.connect(MQTT_SERVER, MQTT_2_PORT, 60)
-    AIR_CONDITIONER_COMMAND_TOPIC = f"hotel/physical_rooms/{room_number}/command/air-conditioner"
+    air_conditioner_command_topic = f"hotel/rooms/{room_number}/command/air-conditioner"
     client.loop_start()
 
+    current_air_conditioner_mode = 0
+
     while True:
-        if air_conditioner_mode != current_air_conditioner_mode:
-            print(f"publish in {AIR_CONDITIONER_COMMAND_TOPIC}")
-            client.publish(AIR_CONDITIONER_COMMAND_TOPIC, payload=json.dumps({"mode": air_conditioner_mode}),
-                           qos=0, retain=False)
-            print(f"Published {air_conditioner_mode} in {AIR_CONDITIONER_COMMAND_TOPIC}")
+        if sensors["air_conditioner"]["mode"] != current_air_conditioner_mode:
+            client.publish(air_conditioner_command_topic,
+                           payload=json.dumps({"mode": sensors["air_conditioner"]["mode"]}), qos=0, retain=False)
+            print(f'Published {sensors["air_conditioner"]["mode"]} in {air_conditioner_command_topic}')
+            current_air_conditioner_mode = sensors["air_conditioner"]["mode"]
         time.sleep(1)
 
     client.loop_stop()
 
 
 def randomize_sensors():
-    global sensors, connect_raspberry, temperature, air_conditioner_mode
+    global sensors, connect_raspberry
     if not connect_raspberry:
+        sensors["indoor_light"]["active"] = True if random.randint(0, 1) == 1 else False
+        sensors["indoor_light"]["level"] = random.randint(0, 100)
 
-        sensors = {
-            "indoor_light": {
-                "active": True if random.randint(0, 1) == 1 else False,
-                "level": random.randint(0, 100)
-            },
-            "outside_light": {
-                "active": True if random.randint(0, 1) == 1 else False,
-                "level": random.randint(0, 100)
-            },
-            "blind": {
-                "is_open": True if random.randint(0, 1) == 1 else False,
-                "level": random.randint(0, 100)
-            },
-            "air_conditioner": {
-                "active": True if random.randint(0, 1) == 1 else False,
-                "level": random.randint(0, 100)
-            },
-            "presence": {
-                "active": True if random.randint(0, 1) == 1 else False,
-                "detected": True if random.randint(0, 1) == 1 else False
-            },
-            "temperature": {
-                "active": True if random.randint(0, 1) == 1 else False,
-                "temperature": random.randint(0, 40)
-            }
-        }
-        print("Set randomized sensors.")
+        sensors["outside_light"]["active"] = True if random.randint(0, 1) == 1 else False
+        sensors["outside_light"]["level"] = random.randint(0, 100)
+
+        sensors["blind"]["is_open"] = True if random.randint(0, 1) == 1 else False
+        sensors["blind"]["level"] = random.randint(0, 180)
+
+        sensors["air_conditioner"]["active"] = True if random.randint(0, 1) == 1 else False
+        sensors["air_conditioner"]["level"] = random.randint(0, 100)
+        sensors["air_conditioner"]["mode"] = random.randint(0, 2)
+
+        sensors["presence"]["active"] = True if random.randint(0, 1) == 1 else False
+        sensors["presence"]["detected"] = True if random.randint(0, 1) == 1 else False
+
+        sensors["temperature"]["active"] = True if random.randint(0, 1) == 1 else False
+        sensors["temperature"]["temperature"] = random.randint(0, 40)
+
+        print("Set randomized sensors")
         pprint.pprint(sensors)
-        temperature = sensors["temperature"]["temperature"]
-        air_conditioner_mode = sensors["air_conditioner"]["active"]
-        threading.Timer(RANDOMIZE_SENSORS_INTERVAL, randomize_sensors).start()
 
 
 if __name__ == "__main__":
+    RANDOMIZE_SENSORS_INTERVAL = 30
+    MQTT_SERVER = os.getenv("MQTT_SERVER_ADDRESS")
+    MQTT_1_PORT = int(os.getenv("MQTT_1_SERVER_PORT"))
+    MQTT_2_PORT = int(os.getenv("MQTT_2_SERVER_PORT"))
+
+    connect_raspberry = False
     room_number = ""
-    randomize_sensors()
-    t1 = threading.Thread(target=connect_mqtt_1883)
-    t2 = threading.Thread(target=connect_mqtt_1884)
+    container_id = get_host_name()
+    CONTAINER_CONFIG_TOPIC = f"hotel/rooms/{container_id}/config"
 
-    t1.start()
-    t2.start()
+    sensors = {
+        "indoor_light": {
+            "active": True if random.randint(0, 1) == 1 else False,
+            "level": random.randint(0, 100)
+        },
+        "outside_light": {
+            "active": True if random.randint(0, 1) == 1 else False,
+            "level": random.randint(0, 100)
+        },
+        "blind": {
+            "is_open": True if random.randint(0, 1) == 1 else False,
+            "level": random.randint(0, 180)
+        },
+        "air_conditioner": {
+            "active": True if random.randint(0, 1) == 1 else False,
+            "level": random.randint(0, 100),
+            "mode": random.randint(0, 2)
+        },
+        "presence": {
+            "active": True if random.randint(0, 1) == 1 else False,
+            "detected": True if random.randint(0, 1) == 1 else False
+        },
+        "temperature": {
+            "active": True if random.randint(0, 1) == 1 else False,
+            "temperature": random.randint(0, 40)
+        }
+    }
 
-    t1.join()
-    t2.join()
+    threading.Timer(RANDOMIZE_SENSORS_INTERVAL, randomize_sensors).start()
+    mqtt_1883_thread = threading.Thread(target=connect_mqtt_1883, daemon=True)
+    mqtt_1884_thread = threading.Thread(target=connect_mqtt_1884, daemon=True)
+
+    mqtt_1883_thread.start()
+    mqtt_1884_thread.start()

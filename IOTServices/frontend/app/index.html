@@ -78,16 +78,54 @@
                 Presence &nbsp;<span class="badge bg-success" id="presence_value"></span>                
               </li>
               <li class="list-group-item">
-                Air conditioner | Power &nbsp;<span class="badge bg-success" id="air_conditioner_value"></span>
-                &nbsp;&nbsp;
+                Air conditioner <span class="badge bg-success" id="air_conditioner_value"></span>
                 <label>Mode
                   <select id="air_conditioner_mode">
                     <option></option>
-                    <option value="0">Cold</option>
-                    <option value="1">Warm</option>
-                    <option value="2">Off</option>
+                    <option value="0">Off</option>
+                    <option value="1">Cold</option>
+                    <option value="2">Warm</option>
                   </select>
-                </label> 
+                </label>
+              </li>
+              <li class="list-group-item">
+                Interior Light
+                <label>Active
+                  <select id="indoor_light_active">
+                    <option></option>
+                    <option value="0">Off</option>
+                    <option value="1">On</option>
+                  </select>
+                </label>
+                <label>Level
+                  <input id="indoor_light_value">
+                </label>
+              </li>
+              <li class="list-group-item">
+                Exterior Light
+                <label>Active
+                  <select id="outdoor_light_active">
+                    <option></option>
+                    <option value="0">Off</option>
+                    <option value="1">On</option>
+                  </select>
+                </label>
+                <label>Level
+                  <input id="outdoor_light_value">
+                </label>
+              </li>
+              <li class="list-group-item">
+                Blinds
+                <label>Active
+                  <select id="blind_active">
+                    <option></option>
+                    <option value="0">Close</option>
+                    <option value="1">Open</option>
+                  </select>
+                </label>
+                <label>Level
+                  <input id="blind_value">
+                </label>
               </li>
             </ul>
           </div>

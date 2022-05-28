@@ -2,17 +2,20 @@
  * Javascript file to implement client side usability for 
  * Operating Systems Desing exercises.
  */
- var api_server_address = "http://34.141.27.32:5001/"
+ var api_server_address = "http://34.141.18.88:5001/"
 
- var get_current_sensor_data = function(){
+ var get_current_sensor_data = function() {
     $.getJSON( api_server_address+"device_state", function( data ) {
         $.each(data, function( index, item ) {
-          $("#"+item.room).data(item.type, item.value)
+          $("#"+item.room).data(item.type, item.value);
+          if (item.type === "outdoor-status" && item.value === "1") {
+              $("#"+item.room).css("background-color", "#39c918");
+          }
       });
     });
 }
 
-var draw_rooms = function(){
+var draw_rooms = function() {
     $("#rooms").empty()
     var room_index = 1;
     for (var i = 0; i < 8; i++) {
@@ -33,7 +36,7 @@ var draw_rooms = function(){
     }
 }
 
-$("#air_conditioner_mode").change(function(){
+$("#air_conditioner_mode").change(function() {
     var value = $(this).val()
     $.ajax({
         type: "POST",
@@ -51,9 +54,16 @@ $("#rooms").on("click", "td", function() {
     $("#room_id").text($( this ).attr("id") || "");
     $("#temperature_value").text($( this ).data("temperature") || "");
     $("#presence_value").text($( this ).data("presence") || "0");
-    $("#air_conditioner_value").text($( this ).data("air-level") || "");
     $("#air_conditioner_mode").val($( this ).data("air-mode"));
+    $("#air_conditioner_value").text($( this ).data("air-level") || "");
+    $("#indoor_light_active").val($( this ).data("indoor-status"));
+    $("#indoor_light_value").val($( this ).data("indoor-level"));
+    $("#outdoor_light_active").val($( this ).data("outdoor-status"));
+    $("#outdoor_light_value").val($( this ).data("outdoor-level"));
+    $("#blind_active").val($( this ).data("blind-status"));
+    $("#blind_value").val($( this ).data("blind-level"));
+
 });
 
 draw_rooms()
-setInterval(get_current_sensor_data,2000)
+setInterval(get_current_sensor_data,5000)
