@@ -8,7 +8,7 @@
     $.getJSON( api_server_address+"device_state", function( data ) {
         $.each(data, function( index, item ) {
           $("#"+item.room).data(item.type, item.value);
-          if (item.type === "outdoor-status" && item.value === "1") {
+          if (item.type === "outdoor-mode" && item.value === "1") {
               $("#"+item.room).css("background-color", "#39c918");
           }
       });
@@ -66,4 +66,4 @@ $("#rooms").on("click", "td", function() {
 });
 
 draw_rooms()
-setInterval(get_current_sensor_data,5000)
+setInterval(get_current_sensor_data,2000)
