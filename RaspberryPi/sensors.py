@@ -90,8 +90,6 @@ def button_pressed_callback(channel):
 
 def led():
     global sensors
-    GPIO.output(outdoor_light_pin, GPIO.HIGH)
-    GPIO.output(indoor_light_pin, GPIO.HIGH)
     while not kill:
         if not sensors["presence"]["detected"]:
             GPIO.output(red_pin, GPIO.LOW)
@@ -128,11 +126,10 @@ def motor():
     global pwm, servo_pwm, color, sensors
     color = "green"
     while not kill:
-        if not sensors["presence"]["detected"]:
+        if not sensors["presence"]["detected"] or not sensors["air_conditioner"]["active"]:
             pwm.ChangeDutyCycle(0)
             time.sleep(1)
             continue
-
         temperature = sensors["temperature"]["temperature"]
         if temperature:
             upper_bound = 24
@@ -205,6 +202,7 @@ def on_connect(client, userdata, flags, rc):
 
 
 def on_message(client, userdata, msg):
+    global outdoor_light_pin, indoor_light_pin
     print(f"Message received in MQTT 1884 {msg.topic} with message {msg.payload.decode()}")
     topic = msg.topic.split('/')
     if "config" in topic:
@@ -215,26 +213,46 @@ def on_message(client, userdata, msg):
         if topic[-1] == "air-conditioner":
             print("Received AC command")
             payload = json.loads(msg.payload)
-            sensors["air_conditioner"]["active"] = payload["mode"]
+            sensors["air_conditioner"]["active"] = int(payload["mode"])
 
         if topic[-1] == "indoor":
             print("Received indoor command")
             payload = json.loads(msg.payload)
-            sensors["indoor_light"]["active"] = payload["mode"]
+            sensors["indoor_light"]["active"] = int(payload["mode"])
+
+        if topic[-1] == "indoor-level":
+            print("Received indoor level command")
+            payload = json.loads(msg.payload)
+            sensors["indoor_light"]["level"] = int(payload["mode"])
+            if sensors["indoor_light"]["level"] == 1:
+                GPIO.output(indoor_light_pin, int(payload["mode"]))
 
         if topic[-1] == "outdoor":
             print("Received outdoor command")
             payload = json.loads(msg.payload)
-            sensors["outside_light"]["active"] = payload["mode"]
+            sensors["outside_light"]["active"] = int(payload["mode"])
+
+        if topic[-1] == "outdoor-level":
+            print("Received outdoor level command")
+            payload = json.loads(msg.payload)
+            sensors["outside_light"]["level"] = int(payload["mode"])
+            if sensors["outside_light"]["active"] == 1:
+                GPIO.output(outdoor_light_pin, int(payload["mode"]))
 
         if topic[-1] == "blind":
             print("Received blind command")
             payload = json.loads(msg.payload)
-            sensors["blind"]["is_open"] = payload["mode"]
+            sensors["blind"]["is_open"] = int(payload["mode"])
             if payload["mode"] == "0":
                 change_servo_pos(180)
             elif payload["mode"] == "1":
                 change_servo_pos(0)
+
+        if topic[-1] == "outdoor":
+            print("Received blind command")
+            payload = json.loads(msg.payload)
+            sensors["blind"]["level"] = int(payload["mode"])
+            change_servo_pos(int(payload["mode"]))
 
 def on_publish(client, userdata, result):
     print("data published")
