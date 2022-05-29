@@ -46,50 +46,55 @@ def send_command(params):
     type_dev = params["type"]
     value = params["value"]
     room = params["room"]
+    # topic = ""
 
     if type_dev == "air-conditioner-mode":
         topic = f"hotel/rooms/{room}/command/air-conditioner"
-        client.publish(topic, payload=json.dumps({"mode": value}), qos=0, retain=True)
-        print(f"Command message has been sent through {topic}")
-        return {"response": "Message sent successfully"}, 200
+        # client.publish(topic, payload=json.dumps({"mode": value}), qos=0, retain=True)
+        # print(f"Command message has been sent through {topic}")
+        # return {"response": "Message sent successfully"}, 200
 
     elif type_dev == "blind-mode":
         topic = f"hotel/rooms/{room}/command/blind"
-        client.publish(topic, payload=json.dumps({"mode": value}), qos=0, retain=True)
-        print(f"Command message has been sent through {topic}")
-        return {"response": "Message sent successfully"}, 200
+        # client.publish(topic, payload=json.dumps({"mode": value}), qos=0, retain=True)
+        # print(f"Command message has been sent through {topic}")
+        # return {"response": "Message sent successfully"}, 200
 
     elif type_dev == "blind-level":
         topic = f"hotel/rooms/{room}/command/blind-level"
-        client.publish(topic, payload=json.dumps({"mode": value}), qos=0, retain=True)
-        print(f"Command message has been sent through {topic}")
-        return {"response": "Message sent successfully"}, 200
+        # client.publish(topic, payload=json.dumps({"mode": value}), qos=0, retain=True)
+        # print(f"Command message has been sent through {topic}")
+        # return {"response": "Message sent successfully"}, 200
 
     elif type_dev == "indoor-light-mode":
         topic = f"hotel/rooms/{room}/command/indoor"
-        client.publish(topic, payload=json.dumps({"mode": value}), qos=0, retain=True)
-        print(f"Command message has been sent through {topic}")
-        return {"response": "Message sent successfully"}, 200
+        # client.publish(topic, payload=json.dumps({"mode": value}), qos=0, retain=True)
+        # print(f"Command message has been sent through {topic}")
+        # return {"response": "Message sent successfully"}, 200
 
     elif type_dev == "indoor-light-level":
         topic = f"hotel/rooms/{room}/command/indoor-level"
-        client.publish(topic, payload=json.dumps({"mode": value}), qos=0, retain=True)
-        print(f"Command message has been sent through {topic}")
-        return {"response": "Message sent successfully"}, 200
+        # client.publish(topic, payload=json.dumps({"mode": value}), qos=0, retain=True)
+        # print(f"Command message has been sent through {topic}")
+        # return {"response": "Message sent successfully"}, 200
 
     elif type_dev == "outdoor-light-mode":
         topic = f"hotel/rooms/{room}/command/outdoor"
-        client.publish(topic, payload=json.dumps({"mode": value}), qos=0, retain=True)
-        print(f"Command message has been sent through {topic}")
-        return {"response": "Message sent successfully"}, 200
+        # client.publish(topic, payload=json.dumps({"mode": value}), qos=0, retain=True)
+        # print(f"Command message has been sent through {topic}")
+        # return {"response": "Message sent successfully"}, 200
 
     elif type_dev == "outdoor-light-level":
         topic = f"hotel/rooms/{room}/command/outdoor-level"
-        client.publish(topic, payload=json.dumps({"mode": value}), qos=0, retain=True)
-        print(f"Command message has been sent through {topic}")
-        return {"response": "Message sent successfully"}, 200
+        # client.publish(topic, payload=json.dumps({"mode": value}), qos=0, retain=True)
+        # print(f"Command message has been sent through {topic}")
+        # return {"response": "Message sent successfully"}, 200
     else:
         return {"response": "Incorrect type param"}, 401
+
+    client.publish(topic, payload=json.dumps({"mode": value}), qos=0, retain=True)
+    print(f"Command message has been sent through {topic}")
+    return {"response": "Message sent successfully"}, 200
 
 
 @app.route('/device_state', methods=['POST'])
@@ -129,5 +134,4 @@ if __name__ == "__main__":
     CORS(app)
     app.run(host=os.getenv("API_HOST"), port=int(os.getenv("API_PORT")), debug=True)
 
-    print("after app.run")
     listener_thread.join()

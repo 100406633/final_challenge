@@ -75,7 +75,6 @@ def on_message_1883(client, userdata, msg):
 
 def on_publish_1883(client, userdata, result):
     pass
-    # print("data published")
 
 
 def on_disconnect_1883(client, userdata, flags):
@@ -109,47 +108,73 @@ def connect_mqtt_1883():
     indoor_level_topic = f"{telemetry_topic}indoor-level"
     outdoor_mode_topic = f"{telemetry_topic}outdoor-mode"
     outdoor_level_topic = f"{telemetry_topic}outdoor-level"
-    current_temperature = 0
+
+    current_sensors = {
+        "indoor_light": {"active": 0, "level": 0},
+        "outside_light": {"active": 0, "level": 0},
+        "blind": {"is_open": 0, "level": 0},
+        "air_conditioner": {"active": 0, "level": 0},
+        "presence": {"active": False, "detected": 0},
+        "temperature": {"active": False, "temperature": 0}
+    }
 
     while True:
-        # continue
-        print("1883 while loop\n")
-        if sensors["temperature"]["temperature"] != current_temperature:
+        if sensors["temperature"]["temperature"] != current_sensors["temperature"]["temperature"]:
             client.publish(temperature_topic, payload=str(sensors["temperature"]["temperature"]), qos=0, retain=False)
             print(f'Published {sensors["temperature"]["temperature"]} in {temperature_topic}')
-            current_temperature = sensors["temperature"]["temperature"]
+            current_sensors["temperature"]["temperature"] = sensors["temperature"]["temperature"]
 
-        client.publish(air_conditioner_mode_topic, payload=str(sensors["air_conditioner"]["active"]), qos=0, retain=False)
-        print(f'Published {sensors["air_conditioner"]["active"]} in {air_conditioner_mode_topic}')
-        client.publish(air_conditioner_level_topic, payload=str(sensors["air_conditioner"]["level"]), qos=0, retain=False)
-        print(f'Published {sensors["air_conditioner"]["level"]} in {air_conditioner_level_topic}')
+        if sensors["air_conditioner"]["active"] != current_sensors["air_conditioner"]["active"]:
+            client.publish(air_conditioner_mode_topic, payload=str(sensors["air_conditioner"]["active"]), qos=0, retain=False)
+            print(f'Published {sensors["air_conditioner"]["active"]} in {air_conditioner_mode_topic}')
+            current_sensors["air_conditioner"]["active"] = sensors["air_conditioner"]["active"]
 
-        client.publish(presence_topic, payload=str(sensors["presence"]["detected"]), qos=0, retain=False)
-        print(f'Published {sensors["presence"]["detected"]} in {presence_topic}')
+        if sensors["air_conditioner"]["level"] != current_sensors["air_conditioner"]["level"]:
+            client.publish(air_conditioner_level_topic, payload=str(sensors["air_conditioner"]["level"]), qos=0, retain=False)
+            print(f'Published {sensors["air_conditioner"]["level"]} in {air_conditioner_level_topic}')
+            current_sensors["air_conditioner"]["level"] = sensors["air_conditioner"]["level"]
 
-        client.publish(indoor_mode_topic, payload=str(sensors["indoor_light"]["active"]), qos=0, retain=False)
-        print(f'Published {sensors["indoor_light"]["active"]} in {indoor_mode_topic}')
-        client.publish(indoor_level_topic, payload=str(sensors["indoor_light"]["level"]), qos=0, retain=False)
-        print(f'Published {sensors["indoor_light"]["level"]} in {indoor_level_topic}')
+        if sensors["presence"]["detected"] != current_sensors["presence"]["detected"]:
+            client.publish(presence_topic, payload=str(sensors["presence"]["detected"]), qos=0, retain=False)
+            print(f'Published {sensors["presence"]["detected"]} in {presence_topic}')
+            current_sensors["presence"]["detected"] = sensors["presence"]["detected"]
 
-        client.publish(outdoor_mode_topic, payload=str(sensors["outside_light"]["active"]), qos=0, retain=False)
-        print(f'Published {sensors["outside_light"]["active"]} in {outdoor_mode_topic}')
-        client.publish(outdoor_level_topic, payload=str(sensors["outside_light"]["level"]), qos=0, retain=False)
-        print(f'Published {sensors["outside_light"]["level"]} in {outdoor_level_topic}')
+        if sensors["indoor_light"]["active"] != current_sensors["indoor_light"]["active"]:
+            client.publish(indoor_mode_topic, payload=str(sensors["indoor_light"]["active"]), qos=0, retain=False)
+            print(f'Published {sensors["indoor_light"]["active"]} in {indoor_mode_topic}')
+            current_sensors["indoor_light"]["active"] = sensors["indoor_light"]["active"]
 
-        client.publish(blind_mode_topic, payload=str(sensors["blind"]["is_open"]), qos=0, retain=False)
-        print(f'Published {sensors["blind"]["is_open"]} in {blind_mode_topic}')
-        client.publish(blind_level_topic, payload=str(sensors["blind"]["level"]), qos=0, retain=False)
-        print(f'Published {sensors["blind"]["level"]} in {blind_level_topic}')
+        if sensors["indoor_light"]["level"] != current_sensors["indoor_light"]["level"]:
+            client.publish(indoor_level_topic, payload=str(sensors["indoor_light"]["level"]), qos=0, retain=False)
+            print(f'Published {sensors["indoor_light"]["level"]} in {indoor_level_topic}')
+            current_sensors["indoor_light"]["level"] = sensors["indoor_light"]["level"]
+
+        if sensors["outside_light"]["active"] != current_sensors["outside_light"]["active"]:
+            client.publish(outdoor_mode_topic, payload=str(sensors["outside_light"]["active"]), qos=0, retain=False)
+            print(f'Published {sensors["outside_light"]["active"]} in {outdoor_mode_topic}')
+            current_sensors["outside_light"]["active"] = sensors["outside_light"]["active"]
+
+        if sensors["outside_light"]["level"] != current_sensors["outside_light"]["level"]:
+            client.publish(outdoor_level_topic, payload=str(sensors["outside_light"]["level"]), qos=0, retain=False)
+            print(f'Published {sensors["outside_light"]["level"]} in {outdoor_level_topic}')
+            current_sensors["outside_light"]["level"] = sensors["outside_light"]["level"]
+
+        if sensors["blind"]["is_open"] != current_sensors["blind"]["is_open"]:
+            client.publish(blind_mode_topic, payload=str(sensors["blind"]["is_open"]), qos=0, retain=False)
+            print(f'Published {sensors["blind"]["is_open"]} in {blind_mode_topic}')
+            current_sensors["blind"]["is_open"] = sensors["blind"]["is_open"]
+
+        if sensors["blind"]["level"] != current_sensors["blind"]["level"]:
+            client.publish(blind_level_topic, payload=str(sensors["blind"]["level"]), qos=0, retain=False)
+            print(f'Published {sensors["blind"]["level"]} in {blind_level_topic}')
+            current_sensors["blind"]["level"] = sensors["blind"]["level"]
 
         time.sleep(1)
-
     client.loop_stop()
 
 
 def on_connect_1884(client, userdata, flags, rc):
     global room_number
-    # print("on_connect_1884\n")
 
     physical_room_config_topic = f"hotel/rooms/{room_number}/config"
     client.subscribe(physical_room_config_topic)
@@ -174,7 +199,6 @@ def on_message_1884(client, userdata, msg):
 
 def on_publish_1884(client, userdata, result):
     pass
-    # print("data published")
 
 
 def on_disconnect_1884(client, userdata, flags):
@@ -197,7 +221,7 @@ def connect_mqtt_1884():
     client.connect(MQTT_SERVER, MQTT_2_PORT, 60)
     client.loop_start()
 
-    # if digital twin must send commands even if the raspberry Pi is not connected, don't do this loop
+    #if digital twin must send commands even if the raspberry Pi is not connected, don't do this loop
     # while not connect_raspberry:
     #     print(f"WAITING PHYSICAL ROOM NUMBER IN THREAD {threading.current_thread().ident}")
     #     time.sleep(1)
@@ -213,7 +237,6 @@ def connect_mqtt_1884():
     current_outdoor_mode = 0
 
     while True:
-        print("1884 while loop\n")
         if sensors["air_conditioner"]["active"] != current_air_conditioner_mode:
             client.publish(air_conditioner_command_topic,
                            payload=json.dumps({"mode": sensors["air_conditioner"]["active"]}), qos=0, retain=False)

@@ -15,21 +15,18 @@ CORS(app)
 @app.route('/device_state', methods=['GET', 'POST'])
 def device_state():
     if request.method == 'POST':
-        print("POST", file=sys.stderr)
+        print("DATA INGESTION POST", file=sys.stderr)
         params = request.get_json()
-        # print(params, file=sys.stderr)
         if len(params) != 3:
             return {"response": "Incorrect parameters"}, 401
-        mycursor = insert_device_state(params)
-        return {"response": f"{mycursor.rowcount} records inserted"}, 200
+        cursor = insert_device_state(params)
+        return {"response": f"{cursor.rowcount} records inserted"}, 200
 
     elif request.method == 'GET':
-        print("GET", file=sys.stderr)
-        myselect = get_device_state()
-        # print(myselect, file=sys.stderr)
-        data = {i: {"room": myselect[i][0], "type": myselect[i][1], "value": myselect[i][2]}
-                for i in range(len(myselect))}
-        # print("data:\n", data, file=sys.stderr)
+        print("DATA INGESTION GET", file=sys.stderr)
+        query = get_device_state()
+        data = {i: {"room": query[i][0], "type": query[i][1], "value": query[i][2]}
+                for i in range(len(query))}
         return data
 
 
