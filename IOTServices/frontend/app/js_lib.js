@@ -54,6 +54,90 @@ $("#air_conditioner_mode").change(function() {
     });
 })
 
+$("#blind_active").change(function() {
+    var value = $(this).val()
+    $.ajax({
+        type: "POST",
+        url: api_server_address+"device_state",
+        data: JSON.stringify({
+            "room":$("#room_id").text(),
+            "type":"blind-mode",
+            "value":value,
+        }),
+        contentType: 'application/json'
+    });
+})
+
+$("#blind_value").change(function() {
+    var value = $(this).val()
+    $.ajax({
+        type: "POST",
+        url: api_server_address+"device_state",
+        data: JSON.stringify({
+            "room":$("#room_id").text(),
+            "type":"blind-level",
+            "value":value,
+        }),
+        contentType: 'application/json'
+    });
+})
+
+$("#indoor_light_active").change(function() {
+    var value = $(this).val()
+    $.ajax({
+        type: "POST",
+        url: api_server_address+"device_state",
+        data: JSON.stringify({
+            "room":$("#room_id").text(),
+            "type":"indoor-light-mode",
+            "value":value,
+        }),
+        contentType: 'application/json'
+    });
+})
+
+$("#indoor_light_value").change(function() {
+    var value = $(this).val()
+    $.ajax({
+        type: "POST",
+        url: api_server_address+"device_state",
+        data: JSON.stringify({
+            "room":$("#room_id").text(),
+            "type":"indoor-light-level",
+            "value":value,
+        }),
+        contentType: 'application/json'
+    });
+})
+
+$("#outdoor_light_active").change(function() {
+    var value = $(this).val()
+    $.ajax({
+        type: "POST",
+        url: api_server_address+"device_state",
+        data: JSON.stringify({
+            "room":$("#room_id").text(),
+            "type":"outdoor-light-mode",
+            "value":value,
+        }),
+        contentType: 'application/json'
+    });
+})
+
+$("#outdoor_light_value").change(function() {
+    var value = $(this).val()
+    $.ajax({
+        type: "POST",
+        url: api_server_address+"device_state",
+        data: JSON.stringify({
+            "room":$("#room_id").text(),
+            "type":"outdoor-light-level",
+            "value":value,
+        }),
+        contentType: 'application/json'
+    });
+})
+
 function paint_facade(){
      let letter = document.querySelector("input").value;
      let A = [1,2,6,4,5,10,13,28,33,38];

@@ -28,11 +28,43 @@ def on_message_1883(client, userdata, msg):
         global room_number
         room_number = msg.payload.decode()
         print(f"Room number received as: {room_number}")
-    elif "command" in topic and "air-conditioner" in topic:
+
+    elif "command" in topic:
         global sensors
-        print(f"Air-conditioner command received {msg.payload}")
-        payload = json.loads(msg.payload)  #this ain't gonna work
-        sensors["air_conditioner"]["active"] = payload["mode"]
+        if "air-conditioner" in topic:
+            print(f"{topic[-1]} command received {msg.payload}")
+            payload = json.loads(msg.payload)
+            sensors["air_conditioner"]["active"] = payload["mode"]
+
+        elif "blind" in topic:
+            print(f"{topic[-1]} command received {msg.payload}")
+            payload = json.loads(msg.payload)
+            sensors["blind"]["is_open"] = payload["mode"]
+
+        elif "blind-level" in topic:
+            print(f"{topic[-1]} command received {msg.payload}")
+            payload = json.loads(msg.payload)
+            sensors["blind"]["level"] = payload["mode"]
+
+        elif "indoor" in topic:
+            print(f"{topic[-1]} command received {msg.payload}")
+            payload = json.loads(msg.payload)
+            sensors["indoor_light"]["active"] = payload["mode"]
+
+        elif "indoor-level" in topic:
+            print(f"{topic[-1]} command received {msg.payload}")
+            payload = json.loads(msg.payload)
+            sensors["indoor_light"]["level"] = payload["mode"]
+
+        elif "outdoor" in topic:
+            print(f"{topic[-1]} command received {msg.payload}")
+            payload = json.loads(msg.payload)
+            sensors["outside_light"]["active"] = payload["mode"]
+
+        elif "outdoor-level" in topic:
+            print(f"{topic[-1]} command received {msg.payload}")
+            payload = json.loads(msg.payload)
+            sensors["outside_light"]["level"] = payload["mode"]
 
 
 def on_publish_1883(client, userdata, result):
