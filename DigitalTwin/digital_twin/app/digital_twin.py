@@ -25,8 +25,8 @@ def on_connect_1883(client, userdata, flags, rc):
 def on_message_1883(client, userdata, msg):
     print(f"Message received in MQTT-1883 {msg.topic} with message {msg.payload.decode()}")
     topic = msg.topic.split('/')
-    if "test" in topic:
-        print("test topic", msg.payload.decode())
+    # if "test" in topic:
+    #     print("test topic", msg.payload.decode())
 
     if "config" in topic:
         global room_number
@@ -37,9 +37,9 @@ def on_message_1883(client, userdata, msg):
         client.subscribe(all_command_topics)
         print(f"Subscribed to, {all_command_topics}")
 
-        test_topic = f"hotel/rooms/{room_number}/test"
-        client.subscribe(test_topic)
-        print(f"Subscribed to, {test_topic}")
+        # test_topic = f"hotel/rooms/{room_number}/test"
+        # client.subscribe(test_topic)
+        # print(f"Subscribed to, {test_topic}")
 
     elif "command" in topic:
         global sensors
