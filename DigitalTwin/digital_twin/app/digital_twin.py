@@ -34,37 +34,37 @@ def on_message_1883(client, userdata, msg):
         if "air-conditioner" in topic:
             print(f"{topic[-1]} command received {msg.payload}")
             payload = json.loads(msg.payload)
-            sensors["air_conditioner"]["active"] = payload["mode"]
+            sensors["air_conditioner"]["active"] = int(payload["mode"])
 
         elif "blind" in topic:
             print(f"{topic[-1]} command received {msg.payload}")
             payload = json.loads(msg.payload)
-            sensors["blind"]["is_open"] = payload["mode"]
+            sensors["blind"]["is_open"] = int(payload["mode"])
 
         elif "blind-level" in topic:
             print(f"{topic[-1]} command received {msg.payload}")
             payload = json.loads(msg.payload)
-            sensors["blind"]["level"] = payload["mode"]
+            sensors["blind"]["level"] = int(payload["mode"])
 
         elif "indoor" in topic:
             print(f"{topic[-1]} command received {msg.payload}")
             payload = json.loads(msg.payload)
-            sensors["indoor_light"]["active"] = payload["mode"]
+            sensors["indoor_light"]["active"] = int(payload["mode"])
 
         elif "indoor-level" in topic:
             print(f"{topic[-1]} command received {msg.payload}")
             payload = json.loads(msg.payload)
-            sensors["indoor_light"]["level"] = payload["mode"]
+            sensors["indoor_light"]["level"] = int(payload["mode"])
 
         elif "outdoor" in topic:
             print(f"{topic[-1]} command received {msg.payload}")
             payload = json.loads(msg.payload)
-            sensors["outside_light"]["active"] = payload["mode"]
+            sensors["outside_light"]["active"] = int(payload["mode"])
 
         elif "outdoor-level" in topic:
             print(f"{topic[-1]} command received {msg.payload}")
             payload = json.loads(msg.payload)
-            sensors["outside_light"]["level"] = payload["mode"]
+            sensors["outside_light"]["level"] = int(payload["mode"])
 
 
 def on_publish_1883(client, userdata, result):
