@@ -75,20 +75,20 @@ def led():
         sem.acquire()
         global color
         if color == "blue":
-            print("led blue")
+            #print("led blue")
             GPIO.output(red_pin, GPIO.LOW)
             GPIO.output(green_pin, GPIO.LOW)
             GPIO.output(blue_pin, GPIO.HIGH)
             time.sleep(1)
         elif color == "green":
-            print("led green")
+            #print("led green")
             GPIO.output(red_pin, GPIO.LOW)
             GPIO.output(green_pin, GPIO.HIGH)
             GPIO.output(blue_pin, GPIO.LOW)
             time.sleep(1)
 
         elif color == "red":
-            print("led red")
+            #print("led red")
             GPIO.output(red_pin, GPIO.HIGH)
             GPIO.output(green_pin, GPIO.LOW)
             GPIO.output(blue_pin, GPIO.LOW)
@@ -119,7 +119,7 @@ def motor():
                     cycle = abs(lower_bound-temperature) * 10
                     if cycle > 100:
                         cycle = 100
-                    print(f"red {cycle=}")
+                    #print(f"red {cycle=}")
                     sem.acquire()
                     color = "red"
                     sem.release()
@@ -128,7 +128,7 @@ def motor():
                     cycle = abs(temperature - upper_bound) * 10
                     if cycle > 100:
                         cycle = 100
-                    print(f"blue {cycle=}")
+                    #print(f"blue {cycle=}")
                     sem.acquire()
                     color = "blue"
                     sem.release()
@@ -189,11 +189,23 @@ def on_message(client, userdata, msg):
         global is_connected
         is_connected = True
     elif "command" in topic:
-        if topic[-1] == "temperature":
+        if topic[-1] == "air-conditioner":
             global sensors
-            print("Received temperature command")
+            print("Received AC command")
             payload = json.loads(msg.payload)
-            sensors["temperature"]["temperature"] = payload["mode"]
+            sensors["air_conditioner"]["level"] = payload["mode"]
+
+        if topic[-1] == "indoor":
+            global sensors
+            print("Received indoor command")
+            payload = json.loads(msg.payload)
+            sensors["indoor_light"]["level"] = payload["mode"]
+
+        if topic[-1] == "outdoor":
+            global sensors
+            print("Received outdoor command")
+            payload = json.loads(msg.payload)
+            sensors["outside_light"]["level"] = payload["mode"]
 
 
 def on_publish(client, userdata, result):
@@ -220,7 +232,9 @@ if __name__ == "__main__":
     TEMPERATURE_TOPIC = f"{TELEMETRY_TOPIC}temperature"
     AIR_CONDITIONER_TOPIC = f"{TELEMETRY_TOPIC}air_conditioner"
     BLIND_TOPIC = f"{TELEMETRY_TOPIC}blind"
-
+    PRESENCE_TOPIC = f"{TELEMETRY_TOPIC}presence"
+    INDOOR_TOPIC = f"{TELEMETRY_TOPIC}indoor"
+    OUTDOOR_TOPIC = f"{TELEMETRY_TOPIC}outdoor"
     sensors = {
         "indoor_light": {
             "active": True,
@@ -240,7 +254,7 @@ if __name__ == "__main__":
         },
         "presence": {
             "active": True,
-            "detected": False
+            "detected": 0
         },
         "temperature": {
             "active": True,
@@ -286,9 +300,15 @@ if __name__ == "__main__":
             blind_thread.start()
 
             while not kill:
-                client.publish(TEMPERATURE_TOPIC, payload=str(sensors["temperature"]["temperature"]),
-                               qos=0, retain=False)
-                print(f'Published {sensors["temperature"]["temperature"]}')
+                client.publish(PRESENCE_TOPIC,payload=str(sensors["presence"]["detected"]),qos=0, retain=False)
+                print(f'Published Presence {sensors["presence"]["detected"]}')
+
+                client.publish(TEMPERATURE_TOPIC, payload=str(sensors["temperature"]["temperature"]),qos=0, retain=False)
+                print(f'Published Temperature {sensors["temperature"]["temperature"]}')
+
+                client.publish(AIR_CONDITIONER_TOPIC, payload=str(sensors["air_conditioner"]["level"]), qos=0, retain=False)
+                print(f'Published AC {sensors["air_conditioner"]["level"]}')
+
                 time.sleep(5)
 
             motor_thread.join()
