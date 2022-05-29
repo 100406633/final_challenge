@@ -20,6 +20,7 @@ def device_state():
     if request.method == 'POST':
         print("BACKEND POST", file=sys.stderr)
         params = request.get_json()
+        print(params, file=sys.stderr)
         r = requests.post(
             MESSAGE_ROUTER_API_URL+"/device_state",
             json=params

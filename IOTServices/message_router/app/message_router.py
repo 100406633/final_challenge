@@ -122,7 +122,8 @@ if __name__ == "__main__":
 
     # listener_thread = threading.Thread(target=mqtt_listener, daemon=True)
     # listener_thread.start()
-    mqtt_listener()
 
     CORS(app)
     app.run(host=os.getenv("API_HOST"), port=int(os.getenv("API_PORT")), debug=True)
+
+    mqtt_listener()
