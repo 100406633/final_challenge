@@ -39,7 +39,7 @@ def on_publish_1883(client, userdata, result):
     print("data published")
 
 
-def on_disconnect_1883(client, userdata, flags, rc):
+def on_disconnect_1883(client, userdata, flags):
     pass
 
 
@@ -56,14 +56,20 @@ def connect_mqtt_1883():
     client.loop_start()
 
     while room_number == "":
-        print(f"WAITING ROOM NUMBER IN THREAD {threading.currentThread().ident}")
+        print(f"WAITING ROOM NUMBER IN THREAD {threading.current_thread().ident}")
         time.sleep(1)
 
     telemetry_topic = f"hotel/rooms/{room_number}/telemetry/"
     temperature_topic = f"{telemetry_topic}temperature"
-    air_conditioner_topic = f"{telemetry_topic}air_conditioner"
-    blind_topic = f"{telemetry_topic}blind"
-
+    air_conditioner_mode_topic = f"{telemetry_topic}air-conditioner-mode"
+    air_conditioner_level_topic = f"{telemetry_topic}air-conditioner-level"
+    blind_mode_topic = f"{telemetry_topic}blind-mode"
+    blind_level_topic = f"{telemetry_topic}blind-level"
+    presence_topic = f"{telemetry_topic}presence"
+    indoor_mode_topic = f"{telemetry_topic}indoor-mode"
+    indoor_level_topic = f"{telemetry_topic}indoor-level"
+    outdoor_mode_topic = f"{telemetry_topic}outdoor-mode"
+    outdoor_level_topic = f"{telemetry_topic}outdoor-level"
     current_temperature = 0
 
     while True:
@@ -71,6 +77,30 @@ def connect_mqtt_1883():
             client.publish(temperature_topic, payload=str(sensors["temperature"]["temperature"]), qos=0, retain=False)
             print(f'Published {sensors["temperature"]["temperature"]} in {temperature_topic}')
             current_temperature = sensors["temperature"]["temperature"]
+
+        client.publish(air_conditioner_mode_topic, payload=str(sensors["air_conditioner"]["active"]), qos=0, retain=False)
+        print(f'Published {sensors["air_conditioner"]["active"]} in {air_conditioner_mode_topic}')
+        client.publish(air_conditioner_level_topic, payload=str(sensors["air_conditioner"]["level"]), qos=0, retain=False)
+        print(f'Published {sensors["air_conditioner"]["level"]} in {air_conditioner_level_topic}')
+
+        client.publish(presence_topic, payload=str(sensors["presence"]["detected"]), qos=0, retain=False)
+        print(f'Published {sensors["presence"]["detected"]} in {presence_topic}')
+
+        client.publish(indoor_mode_topic, payload=str(sensors["indoor_light"]["active"]), qos=0, retain=False)
+        print(f'Published {sensors["indoor_light"]["active"]} in {indoor_mode_topic}')
+        client.publish(indoor_level_topic, payload=str(sensors["indoor_light"]["level"]), qos=0, retain=False)
+        print(f'Published {sensors["indoor_light"]["level"]} in {indoor_level_topic}')
+
+        client.publish(outdoor_mode_topic, payload=str(sensors["outside_light"]["active"]), qos=0, retain=False)
+        print(f'Published {sensors["outside_light"]["active"]} in {outdoor_mode_topic}')
+        client.publish(outdoor_level_topic, payload=str(sensors["outside_light"]["level"]), qos=0, retain=False)
+        print(f'Published {sensors["outside_light"]["level"]} in {outdoor_level_topic}')
+
+        client.publish(blind_mode_topic, payload=str(sensors["blind"]["is_open"]), qos=0, retain=False)
+        print(f'Published {sensors["blind"]["is_open"]} in {blind_mode_topic}')
+        client.publish(blind_level_topic, payload=str(sensors["blind"]["level"]), qos=0, retain=False)
+        print(f'Published {sensors["blind"]["level"]} in {blind_level_topic}')
+
         time.sleep(1)
 
     client.loop_stop()
@@ -105,7 +135,7 @@ def on_publish_1884(client, userdata, result):
     print("data published")
 
 
-def on_disconnect_1884(client, userdata, flags, rc):
+def on_disconnect_1884(client, userdata, flags):
     pass
 
 
@@ -119,14 +149,14 @@ def connect_mqtt_1884():
     # client.on_disconnect = on_disconnect_1884
 
     while room_number == "":
-        print(f"WAITING ROOM NUMBER IN THREAD {threading.currentThread().ident}")
+        print(f"WAITING ROOM NUMBER IN THREAD {threading.current_thread().ident}")
         time.sleep(1)
 
     client.connect(MQTT_SERVER, MQTT_2_PORT, 60)
     client.loop_start()
 
     while not connect_raspberry:
-        print(f"WAITING PHYSICAL ROOM NUMBER IN THREAD {threading.currentThread().ident}")
+        print(f"WAITING PHYSICAL ROOM NUMBER IN THREAD {threading.current_thread().ident}")
         time.sleep(1)
 
     air_conditioner_command_topic = f"hotel/rooms/{room_number}/command/air-conditioner"
@@ -160,7 +190,7 @@ def randomize_sensors():
         sensors["air_conditioner"]["level"] = random.randint(0, 100)
 
         sensors["presence"]["active"] = True if random.randint(0, 1) == 1 else False
-        sensors["presence"]["detected"] = True if random.randint(0, 1) == 1 else False
+        sensors["presence"]["detected"] = random.randint(0, 1)
 
         sensors["temperature"]["active"] = True if random.randint(0, 1) == 1 else False
         sensors["temperature"]["temperature"] = random.randint(0, 40)
@@ -200,7 +230,7 @@ if __name__ == "__main__":
         },
         "presence": {
             "active": True if random.randint(0, 1) == 1 else False,
-            "detected": True if random.randint(0, 1) == 1 else False
+            "detected": random.randint(0, 1)
         },
         "temperature": {
             "active": True if random.randint(0, 1) == 1 else False,
