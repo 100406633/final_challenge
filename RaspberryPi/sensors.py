@@ -8,8 +8,36 @@ import paho.mqtt.client as mqtt
 import RPi.GPIO as GPIO
 from openpyxl import load_workbook
 
+sensors = {
+        "indoor_light": {
+            "active": 1,
+            "level": random.randint(0, 100)
+        },
+        "outside_light": {
+            "active": 1,
+            "level": random.randint(0, 100)
+        },
+        "blind": {
+            "is_open": 1,
+            "level": random.randint(0, 180)
+        },
+        "air_conditioner": {
+            "active": random.randint(0, 2),
+            "level": random.randint(10, 30),
+        },
+        "presence": {
+            "active": True,
+            "detected": 0
+        },
+        "temperature": {
+            "active": True,
+            "temperature": random.randint(0, 40)
+        }
+    }
+
 
 def angle_to_duty(angle):
+    time.sleep(2)
     return angle/18 + 2
 
 
@@ -150,6 +178,7 @@ def weather_sensor():
         now = datetime.datetime.now().time()
         humidity, temperature = Adafruit_DHT.read_retry(Adafruit_DHT.DHT11, dht_pin)
         if humidity and temperature:
+            temperature = int(temperature)
             dif_humidity = abs(current_hum - humidity)
             dif_temperature = abs(current_temp - temperature)
             if dif_humidity > 0.1 and dif_temperature > 0.1:
@@ -189,23 +218,26 @@ def on_message(client, userdata, msg):
         global is_connected
         is_connected = True
     elif "command" in topic:
+        global sensors
         if topic[-1] == "air-conditioner":
-            global sensors
             print("Received AC command")
             payload = json.loads(msg.payload)
             sensors["air_conditioner"]["active"] = payload["mode"]
 
         if topic[-1] == "indoor":
-            global sensors
             print("Received indoor command")
             payload = json.loads(msg.payload)
             sensors["indoor_light"]["active"] = payload["mode"]
 
         if topic[-1] == "outdoor":
-            global sensors
             print("Received outdoor command")
             payload = json.loads(msg.payload)
             sensors["outside_light"]["active"] = payload["mode"]
+
+        if topic[-1] == "blind":
+            print("Received blind command")
+            payload = json.loads(msg.payload)
+            sensors["blind"]["is_open"] = payload["mode"]
 
 
 def on_publish(client, userdata, result):
@@ -239,32 +271,7 @@ if __name__ == "__main__":
     indoor_level_topic = f"{telemetry_topic}indoor-level"
     outdoor_mode_topic = f"{telemetry_topic}outdoor-mode"
     outdoor_level_topic = f"{telemetry_topic}outdoor-level"
-    sensors = {
-        "indoor_light": {
-            "active": 1,
-            "level": random.randint(0, 100)
-        },
-        "outside_light": {
-            "active": 1,
-            "level": random.randint(0, 100)
-        },
-        "blind": {
-            "is_open": 1,
-            "level": random.randint(0, 180)
-        },
-        "air_conditioner": {
-            "active": random.randint(0, 2),
-            "level": random.randint(10, 30),
-        },
-        "presence": {
-            "active": True,
-            "detected": 0
-        },
-        "temperature": {
-            "active": True,
-            "temperature": random.randint(0, 40)
-        }
-    }
+
 
     # pwm = None
     # servo_pwm = None
@@ -310,8 +317,8 @@ if __name__ == "__main__":
                 client.publish(temperature_topic, payload=str(sensors["temperature"]["temperature"]),qos=0, retain=False)
                 print(f'Published Temperature {sensors["temperature"]["temperature"]}')
 
-                client.publish(air_conditioner_mode_topic, payload=str(sensors["air_conditioner"]["mode"]), qos=0, retain=False)
-                print(f'Published AC mode{sensors["air_conditioner"]["mode"]}')
+                client.publish(air_conditioner_mode_topic, payload=str(sensors["air_conditioner"]["active"]), qos=0, retain=False)
+                print(f'Published AC mode{sensors["air_conditioner"]["active"]}')
 
                 client.publish(air_conditioner_level_topic, payload=str(sensors["air_conditioner"]["level"]), qos=0,
                                retain=False)
