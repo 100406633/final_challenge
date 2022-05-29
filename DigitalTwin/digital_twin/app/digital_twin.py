@@ -61,8 +61,8 @@ def connect_mqtt_1883():
 
     telemetry_topic = f"hotel/rooms/{room_number}/telemetry/"
     temperature_topic = f"{telemetry_topic}temperature"
-    air_conditioner_mode_topic = f"{telemetry_topic}air-conditioner-mode"
-    air_conditioner_level_topic = f"{telemetry_topic}air-conditioner-level"
+    air_conditioner_mode_topic = f"{telemetry_topic}air-mode"
+    air_conditioner_level_topic = f"{telemetry_topic}air-level"
     blind_mode_topic = f"{telemetry_topic}blind-mode"
     blind_level_topic = f"{telemetry_topic}blind-level"
     presence_topic = f"{telemetry_topic}presence"

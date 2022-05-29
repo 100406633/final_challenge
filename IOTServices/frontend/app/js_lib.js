@@ -54,8 +54,8 @@ $("#rooms").on("click", "td", function() {
     $("#room_id").text($( this ).attr("id") || "");
     $("#temperature_value").text($( this ).data("temperature") || "");
     $("#presence_value").text($( this ).data("presence") || "0");
-    $("#air_conditioner_mode").val($( this ).data("air-conditioner-mode"));
-    $("#air_conditioner_value").text($( this ).data("air-conditioner-level") || "");
+    $("#air_conditioner_mode").val($( this ).data("air-mode"));
+    $("#air_conditioner_value").text($( this ).data("air-level") || "");
     $("#indoor_light_active").val($( this ).data("indoor-mode"));
     $("#indoor_light_value").val($( this ).data("indoor-level"));
     $("#outdoor_light_active").val($( this ).data("outdoor-mode"));
