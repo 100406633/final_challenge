@@ -123,13 +123,13 @@ def connect_mqtt_1884():
         time.sleep(1)
 
     client.connect(MQTT_SERVER, MQTT_2_PORT, 60)
+    client.loop_start()
 
     while not connect_raspberry:
         print(f"WAITING PHYSICAL ROOM NUMBER IN THREAD {threading.currentThread().ident}")
         time.sleep(1)
 
     air_conditioner_command_topic = f"hotel/rooms/{room_number}/command/air-conditioner"
-    client.loop_start()
 
     current_air_conditioner_mode = 0
 
