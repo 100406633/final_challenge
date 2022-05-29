@@ -191,15 +191,6 @@ def weather_sensor():
                 sensors["temperature"]["temperature"] = temperature
         time.sleep(1)
 
-
-def blind():
-    while not kill:
-        angle = random.randint(0, 180)
-        print(f"{angle=}")
-        change_servo_pos(angle)
-        time.sleep(1)
-
-
 def destroy():
     GPIO.cleanup()
 
@@ -240,7 +231,10 @@ def on_message(client, userdata, msg):
             print("Received blind command")
             payload = json.loads(msg.payload)
             sensors["blind"]["is_open"] = payload["mode"]
-
+            if payload["mode"] == "0":
+                change_servo_pos(180)
+            elif payload["mode"] == "1":
+                change_servo_pos(0)
 
 def on_publish(client, userdata, result):
     print("data published")
@@ -256,7 +250,7 @@ def connect_mqtt():
 
 
 if __name__ == "__main__":
-    MQTT_SERVER = "34.141.18.88"
+    MQTT_SERVER = "34.141.27.32"
     MQTT_PORT = 1884
     is_connected = False
 
@@ -305,12 +299,10 @@ if __name__ == "__main__":
             motor_thread = threading.Thread(target=motor)
             rgb_thread = threading.Thread(target=led)
             sensor_thread = threading.Thread(target=weather_sensor)
-            blind_thread = threading.Thread(target=blind)
 
             motor_thread.start()
             rgb_thread.start()
             sensor_thread.start()
-            blind_thread.start()
 
             while not kill:
                 client.publish(presence_topic,payload=str(sensors["presence"]["detected"]),qos=0, retain=False)
@@ -330,7 +322,6 @@ if __name__ == "__main__":
             motor_thread.join()
             rgb_thread.join()
             sensor_thread.join()
-            blind_thread.join()
 
     except KeyboardInterrupt as ex:
         print(f"{ex}\n")
