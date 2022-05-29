@@ -17,8 +17,12 @@ def on_connect_1883(client, userdata, flags, rc):
     print(f"Digital Twin connected with code: {rc}")
     client.publish(CONTAINER_CONFIG_TOPIC, payload=container_id, qos=0, retain=False)
     print(f"Sent ID {container_id} to topic {CONTAINER_CONFIG_TOPIC}")
+
     client.subscribe(CONTAINER_CONFIG_TOPIC + "/room")
     print(f"Subscribed to, {CONTAINER_CONFIG_TOPIC}/room")
+
+    client.subscribe(ALL_COMMAND_TOPICS + "/room")
+    print(f"Subscribed to, {ALL_COMMAND_TOPICS}/room")
 
 
 def on_message_1883(client, userdata, msg):
@@ -271,6 +275,7 @@ if __name__ == "__main__":
     room_number = ""
     container_id = get_host_name()
     CONTAINER_CONFIG_TOPIC = f"hotel/rooms/{container_id}/config"
+    ALL_COMMAND_TOPICS = f"hotel/rooms/{room_number}/command/+"
 
     sensors = {
         "indoor_light": {
