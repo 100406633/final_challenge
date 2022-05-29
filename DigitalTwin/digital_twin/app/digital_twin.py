@@ -25,6 +25,9 @@ def on_connect_1883(client, userdata, flags, rc):
 def on_message_1883(client, userdata, msg):
     print(f"Message received in MQTT-1883 {msg.topic} with message {msg.payload.decode()}")
     topic = msg.topic.split('/')
+    if "test" in topic:
+        print("test topic", msg.payload.decode())
+
     if "config" in topic:
         global room_number
         room_number = msg.payload.decode()
@@ -33,9 +36,10 @@ def on_message_1883(client, userdata, msg):
         all_command_topics = f"hotel/rooms/{room_number}/command/+"
         client.subscribe(all_command_topics)
         print(f"Subscribed to, {all_command_topics}")
-        blind_command_topic = f"hotel/rooms/{room_number}/command/blind"
-        client.subscribe(blind_command_topic)
-        print(f"Subscribed to, {blind_command_topic}")
+
+        test_topic = f"hotel/rooms/{room_number}/test"
+        client.subscribe(test_topic)
+        print(f"Subscribed to, {test_topic}")
 
     elif "command" in topic:
         global sensors
@@ -114,7 +118,8 @@ def connect_mqtt_1883():
     current_temperature = 0
 
     while True:
-        print("1883 while loop\n")
+        continue
+        # print("1883 while loop\n")
     #     if sensors["temperature"]["temperature"] != current_temperature:
     #         client.publish(temperature_topic, payload=str(sensors["temperature"]["temperature"]), qos=0, retain=False)
     #         print(f'Published {sensors["temperature"]["temperature"]} in {temperature_topic}')
