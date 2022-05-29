@@ -177,13 +177,13 @@ def connect_mqtt_1884():
 def randomize_sensors():
     global sensors, connect_raspberry
     if not connect_raspberry:
-        sensors["indoor_light"]["active"] = True if random.randint(0, 1) == 1 else False
+        sensors["indoor_light"]["active"] = random.randint(0, 1)
         sensors["indoor_light"]["level"] = random.randint(0, 100)
 
-        sensors["outside_light"]["active"] = True if random.randint(0, 1) == 1 else False
+        sensors["outside_light"]["active"] = random.randint(0, 1)
         sensors["outside_light"]["level"] = random.randint(0, 100)
 
-        sensors["blind"]["is_open"] = True if random.randint(0, 1) == 1 else False
+        sensors["blind"]["is_open"] = random.randint(0, 1)
         sensors["blind"]["level"] = random.randint(0, 180)
 
         sensors["air_conditioner"]["active"] = random.randint(0, 2)
@@ -213,15 +213,15 @@ if __name__ == "__main__":
 
     sensors = {
         "indoor_light": {
-            "active": True if random.randint(0, 1) == 1 else False,
+            "active": random.randint(0, 1),
             "level": random.randint(0, 100)
         },
         "outside_light": {
-            "active": True if random.randint(0, 1) == 1 else False,
+            "active": random.randint(0, 1),
             "level": random.randint(0, 100)
         },
         "blind": {
-            "is_open": True if random.randint(0, 1) == 1 else False,
+            "is_open": random.randint(0, 1),
             "level": random.randint(0, 180)
         },
         "air_conditioner": {
