@@ -17,8 +17,8 @@ def insert_device_state(params):
     db = connect_database()
     with db.cursor() as cursor:
         sql = "INSERT INTO device_state (room, type, value, date) VALUES (%s, %s, %s, %s)"
-        print(f"params = {params}", file=sys.stderr)
-        print(f"sql = {sql}", file=sys.stderr)
+        # print(f"params = {params}", file=sys.stderr)
+        # print(f"sql = {sql}", file=sys.stderr)
         values = (
             params["room"],
             params["type"],
@@ -36,7 +36,7 @@ def get_device_state():
         sql = "WITH a AS (SELECT room, type, value, TIMESTAMPDIFF(SECOND, date, CURRENT_TIMESTAMP) AS diff FROM device_state), \
         b AS (SELECT room, type, MIN(diff) AS diff FROM a GROUP BY room, type) \
         SELECT * FROM a RIGHT JOIN b ON (a.room=b.room AND a.type=b.type AND a.diff=b.diff);"
-        print(f"sql = {sql}", file=sys.stderr)
+        # print(f"sql = {sql}", file=sys.stderr)
         cursor.execute(sql)
         result = cursor.fetchall()
         return result
