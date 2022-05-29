@@ -46,49 +46,35 @@ def send_command(params):
     type_dev = params["type"]
     value = params["value"]
     room = params["room"]
-    # topic = ""
+    topic = f"hotel/rooms/{room}/command/"
 
-    if type_dev == "air-conditioner-mode":
-        topic = f"hotel/rooms/{room}/command/air-conditioner"
-        # client.publish(topic, payload=json.dumps({"mode": value}), qos=0, retain=True)
-        # print(f"Command message has been sent through {topic}")
-        # return {"response": "Message sent successfully"}, 200
+    commands = {"air-conditioner-mode": "air-conditioner",
+                "blind-mode": "blind", "blind-level": "blind-level",
+                "indoor-light-mode": "indoor", "indoor-light-level": "indoor-level",
+                "outdoor-light-mode": "outdoor", "outdoor-light-level": "outdoor-level"}
 
-    elif type_dev == "blind-mode":
-        topic = f"hotel/rooms/{room}/command/blind"
-        # client.publish(topic, payload=json.dumps({"mode": value}), qos=0, retain=True)
-        # print(f"Command message has been sent through {topic}")
-        # return {"response": "Message sent successfully"}, 200
-
-    elif type_dev == "blind-level":
-        topic = f"hotel/rooms/{room}/command/blind-level"
-        # client.publish(topic, payload=json.dumps({"mode": value}), qos=0, retain=True)
-        # print(f"Command message has been sent through {topic}")
-        # return {"response": "Message sent successfully"}, 200
-
-    elif type_dev == "indoor-light-mode":
-        topic = f"hotel/rooms/{room}/command/indoor"
-        # client.publish(topic, payload=json.dumps({"mode": value}), qos=0, retain=True)
-        # print(f"Command message has been sent through {topic}")
-        # return {"response": "Message sent successfully"}, 200
-
-    elif type_dev == "indoor-light-level":
-        topic = f"hotel/rooms/{room}/command/indoor-level"
-        # client.publish(topic, payload=json.dumps({"mode": value}), qos=0, retain=True)
-        # print(f"Command message has been sent through {topic}")
-        # return {"response": "Message sent successfully"}, 200
-
-    elif type_dev == "outdoor-light-mode":
-        topic = f"hotel/rooms/{room}/command/outdoor"
-        # client.publish(topic, payload=json.dumps({"mode": value}), qos=0, retain=True)
-        # print(f"Command message has been sent through {topic}")
-        # return {"response": "Message sent successfully"}, 200
-
-    elif type_dev == "outdoor-light-level":
-        topic = f"hotel/rooms/{room}/command/outdoor-level"
-        # client.publish(topic, payload=json.dumps({"mode": value}), qos=0, retain=True)
-        # print(f"Command message has been sent through {topic}")
-        # return {"response": "Message sent successfully"}, 200
+    # if type_dev == "air-conditioner-mode":
+    #     topic += "air-conditioner"
+    #
+    # elif type_dev == "blind-mode":
+    #     topic += "blind"
+    #
+    # elif type_dev == "blind-level":
+    #     topic += "blind-level"
+    #
+    # elif type_dev == "indoor-light-mode":
+    #     topic += "indoor"
+    #
+    # elif type_dev == "indoor-light-level":
+    #     topic += "indoor-level"
+    #
+    # elif type_dev == "outdoor-light-mode":
+    #     topic += "outdoor"
+    #
+    # elif type_dev == "outdoor-light-level":
+    #     topic += "outdoor-level"
+    if type_dev in commands:
+        topic += commands[type_dev]
     else:
         return {"response": "Incorrect type param"}, 401
 
