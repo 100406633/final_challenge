@@ -17,7 +17,7 @@ def device_state():
     if request.method == 'POST':
         print("POST", file=sys.stderr)
         params = request.get_json()
-        # print("after request.get_json()", file=sys.stderr)
+        print(params, file=sys.stderr)
         if len(params) != 3:
             return {"response": "Incorrect parameters"}, 401
         mycursor = insert_device_state(params)

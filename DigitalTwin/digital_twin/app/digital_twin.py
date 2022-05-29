@@ -205,28 +205,30 @@ def connect_mqtt_1884():
 
 def randomize_sensors():
     global sensors, connect_raspberry
-    if not connect_raspberry:
-        sensors["indoor_light"]["active"] = random.randint(0, 1)
-        sensors["indoor_light"]["level"] = random.randint(0, 100)
+    while True:
+        if not connect_raspberry:
+            sensors["indoor_light"]["active"] = random.randint(0, 1)
+            sensors["indoor_light"]["level"] = random.randint(0, 100)
 
-        sensors["outside_light"]["active"] = random.randint(0, 1)
-        sensors["outside_light"]["level"] = random.randint(0, 100)
+            sensors["outside_light"]["active"] = random.randint(0, 1)
+            sensors["outside_light"]["level"] = random.randint(0, 100)
 
-        sensors["blind"]["is_open"] = random.randint(0, 1)
-        sensors["blind"]["level"] = random.randint(0, 180)
+            sensors["blind"]["is_open"] = random.randint(0, 1)
+            sensors["blind"]["level"] = random.randint(0, 180)
 
-        sensors["air_conditioner"]["active"] = random.randint(0, 2)
-        sensors["air_conditioner"]["level"] = random.randint(0, 100)
+            sensors["air_conditioner"]["active"] = random.randint(0, 2)
+            sensors["air_conditioner"]["level"] = random.randint(0, 100)
 
-        sensors["presence"]["active"] = True if random.randint(0, 1) == 1 else False
-        sensors["presence"]["detected"] = random.randint(0, 1)
+            sensors["presence"]["active"] = True if random.randint(0, 1) == 1 else False
+            sensors["presence"]["detected"] = random.randint(0, 1)
 
-        sensors["temperature"]["active"] = True if random.randint(0, 1) == 1 else False
-        sensors["temperature"]["temperature"] = random.randint(0, 40)
+            sensors["temperature"]["active"] = True if random.randint(0, 1) == 1 else False
+            sensors["temperature"]["temperature"] = random.randint(0, 40)
 
-        print("Set randomized sensors")
-        pprint.pprint(sensors)
-        threading.Timer(RANDOMIZE_SENSORS_INTERVAL, randomize_sensors).start()
+            print("Set randomized sensors")
+            pprint.pprint(sensors)
+
+        time.sleep(RANDOMIZE_SENSORS_INTERVAL)
 
 
 if __name__ == "__main__":
@@ -267,9 +269,10 @@ if __name__ == "__main__":
         }
     }
 
-    randomize_sensors()
+    randomize_sensors_thread = threading.Thread(target=randomize_sensors, daemon=True)
     mqtt_1883_thread = threading.Thread(target=connect_mqtt_1883, daemon=True)
     mqtt_1884_thread = threading.Thread(target=connect_mqtt_1884, daemon=True)
 
+    randomize_sensors_thread.start()
     mqtt_1883_thread.start()
     mqtt_1884_thread.start()

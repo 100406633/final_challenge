@@ -256,7 +256,7 @@ def connect_mqtt():
 
 
 if __name__ == "__main__":
-    MQTT_SERVER = "34.141.18.88"
+    MQTT_SERVER = "34.141.27.32"
     MQTT_PORT = 1884
     is_connected = False
 
