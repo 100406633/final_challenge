@@ -139,7 +139,7 @@ def connect_mqtt_1883():
     #     client.publish(blind_level_topic, payload=str(sensors["blind"]["level"]), qos=0, retain=False)
     #     print(f'Published {sensors["blind"]["level"]} in {blind_level_topic}')
 
-        time.sleep(1)
+        # time.sleep(1)
 
     client.loop_stop()
 
