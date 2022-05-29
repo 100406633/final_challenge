@@ -1,6 +1,7 @@
 import os
 import json
 import requests
+import sys
 import paho.mqtt.client as mqtt
 from flask import Flask, request
 from flask_cors import CORS
@@ -92,6 +93,7 @@ def send_command(params):
 @app.route('/device_state', methods=['POST'])
 def device_state():
     if request.method == 'POST':
+        print("MESSAGE ROUTER POST", file=sys.stderr)
         params = request.get_json()
         return send_command(params)
 

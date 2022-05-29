@@ -3,6 +3,7 @@
  * Operating Systems Desing exercises.
  */
  var api_server_address = "http://34.141.27.32:5001/"
+ var msg_router_server_address = "http://34.141.27.32:5002/"
 
  var get_current_sensor_data = function() {
     $.getJSON( api_server_address+"device_state", function( data ) {
@@ -44,7 +45,7 @@ $("#air_conditioner_mode").change(function() {
     var value = $(this).val()
     $.ajax({
         type: "POST",
-        url: api_server_address+"device_state",
+        url: msg_router_server_address+"device_state",
         data: JSON.stringify({
             "room":$("#room_id").text(),
             "type":"air-conditioner-mode",
@@ -58,7 +59,7 @@ $("#blind_active").change(function() {
     var value = $(this).val()
     $.ajax({
         type: "POST",
-        url: api_server_address+"device_state",
+        url: msg_router_server_address+"device_state",
         data: JSON.stringify({
             "room":$("#room_id").text(),
             "type":"blind-mode",
@@ -72,7 +73,7 @@ $("#blind_value").change(function() {
     var value = $(this).val()
     $.ajax({
         type: "POST",
-        url: api_server_address+"device_state",
+        url: msg_router_server_address+"device_state",
         data: JSON.stringify({
             "room":$("#room_id").text(),
             "type":"blind-level",
@@ -86,7 +87,7 @@ $("#indoor_light_active").change(function() {
     var value = $(this).val()
     $.ajax({
         type: "POST",
-        url: api_server_address+"device_state",
+        url: msg_router_server_address+"device_state",
         data: JSON.stringify({
             "room":$("#room_id").text(),
             "type":"indoor-light-mode",
@@ -100,7 +101,7 @@ $("#indoor_light_value").change(function() {
     var value = $(this).val()
     $.ajax({
         type: "POST",
-        url: api_server_address+"device_state",
+        url: msg_router_server_address+"device_state",
         data: JSON.stringify({
             "room":$("#room_id").text(),
             "type":"indoor-light-level",
@@ -114,7 +115,7 @@ $("#outdoor_light_active").change(function() {
     var value = $(this).val()
     $.ajax({
         type: "POST",
-        url: api_server_address+"device_state",
+        url: msg_router_server_address+"device_state",
         data: JSON.stringify({
             "room":$("#room_id").text(),
             "type":"outdoor-light-mode",
@@ -128,7 +129,7 @@ $("#outdoor_light_value").change(function() {
     var value = $(this).val()
     $.ajax({
         type: "POST",
-        url: api_server_address+"device_state",
+        url: msg_router_server_address+"device_state",
         data: JSON.stringify({
             "room":$("#room_id").text(),
             "type":"outdoor-light-level",
