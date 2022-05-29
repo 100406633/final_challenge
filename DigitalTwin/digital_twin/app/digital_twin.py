@@ -36,7 +36,8 @@ def on_message_1883(client, userdata, msg):
 
 
 def on_publish_1883(client, userdata, result):
-    print("data published")
+    pass
+    # print("data published")
 
 
 def on_disconnect_1883(client, userdata, flags):
@@ -73,6 +74,7 @@ def connect_mqtt_1883():
     current_temperature = 0
 
     while True:
+        print("1883 while loop\n")
         if sensors["temperature"]["temperature"] != current_temperature:
             client.publish(temperature_topic, payload=str(sensors["temperature"]["temperature"]), qos=0, retain=False)
             print(f'Published {sensors["temperature"]["temperature"]} in {temperature_topic}')
@@ -132,7 +134,8 @@ def on_message_1884(client, userdata, msg):
 
 
 def on_publish_1884(client, userdata, result):
-    print("data published")
+    pass
+    # print("data published")
 
 
 def on_disconnect_1884(client, userdata, flags):
@@ -171,6 +174,7 @@ def connect_mqtt_1884():
     current_outdoor_mode = 0
 
     while True:
+        print("1884 while loop\n")
         if sensors["air_conditioner"]["active"] != current_air_conditioner_mode:
             client.publish(air_conditioner_command_topic,
                            payload=json.dumps({"mode": sensors["air_conditioner"]["active"]}), qos=0, retain=False)
