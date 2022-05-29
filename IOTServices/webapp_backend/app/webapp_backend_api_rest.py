@@ -18,6 +18,7 @@ CORS(app)
 @app.route('/device_state', methods=['GET', 'POST'])
 def device_state():
     if request.method == 'POST':
+        print("BACKEND POST", file=sys.stderr)
         params = request.get_json()
         r = requests.post(
             MESSAGE_ROUTER_API_URL+"/device_state",
@@ -26,6 +27,7 @@ def device_state():
         return json.dumps(r.json()), r.status_code
 
     elif request.method == 'GET':
+        print("BACKEND GET", file=sys.stderr)
         r = requests.get(DATA_INGESTION_API_URL+"/device_state")
         # print(json.dumps(r.json()), file=sys.stderr)
         return json.dumps(r.json()), r.status_code
