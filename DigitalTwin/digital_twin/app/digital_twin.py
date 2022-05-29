@@ -33,6 +33,9 @@ def on_message_1883(client, userdata, msg):
         all_command_topics = f"hotel/rooms/{room_number}/command/+"
         client.subscribe(all_command_topics)
         print(f"Subscribed to, {all_command_topics}")
+        blind_command_topic = f"hotel/rooms/{room_number}/command/blind"
+        client.subscribe(blind_command_topic)
+        print(f"Subscribed to, {blind_command_topic}")
 
     elif "command" in topic:
         global sensors
