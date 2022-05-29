@@ -17,7 +17,7 @@ def device_state():
     if request.method == 'POST':
         print("POST", file=sys.stderr)
         params = request.get_json()
-        print("after request.get_json()", file=sys.stderr)
+        # print("after request.get_json()", file=sys.stderr)
         if len(params) != 3:
             return {"response": "Incorrect parameters"}, 401
         mycursor = insert_device_state(params)
@@ -26,10 +26,10 @@ def device_state():
     elif request.method == 'GET':
         print("GET", file=sys.stderr)
         myselect = get_device_state()
-        print(myselect, file=sys.stderr)
+        # print(myselect, file=sys.stderr)
         data = {i: {"room": myselect[i][0], "type": myselect[i][1], "value": myselect[i][2]}
                 for i in range(len(myselect))}
-        print("data:\n", data, file=sys.stderr)
+        # print("data:\n", data, file=sys.stderr)
         return data
 
 
