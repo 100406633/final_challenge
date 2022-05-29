@@ -110,7 +110,7 @@ def connect_mqtt_1883():
 
 def on_connect_1884(client, userdata, flags, rc):
     global room_number
-    print("on_connect_1884\n")
+    # print("on_connect_1884\n")
 
     physical_room_config_topic = f"hotel/rooms/{room_number}/config"
     client.subscribe(physical_room_config_topic)
