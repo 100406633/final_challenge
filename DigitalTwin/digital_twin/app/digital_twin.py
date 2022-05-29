@@ -110,8 +110,8 @@ def connect_mqtt_1883():
     outdoor_level_topic = f"{telemetry_topic}outdoor-level"
     current_temperature = 0
 
-    # while True:
-    #     print("1883 while loop\n")
+    while True:
+        print("1883 while loop\n")
     #     if sensors["temperature"]["temperature"] != current_temperature:
     #         client.publish(temperature_topic, payload=str(sensors["temperature"]["temperature"]), qos=0, retain=False)
     #         print(f'Published {sensors["temperature"]["temperature"]} in {temperature_topic}')
