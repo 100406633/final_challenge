@@ -15,15 +15,16 @@ def on_connect(client, userdata, flags, rc):
 
     client.subscribe(ALL_TOPICS)
     print(f"Subscribed to {ALL_TOPICS}")
+
     client.subscribe(CONFIG_TOPIC)
     print(f"Subscribed to {CONFIG_TOPIC}")
-    # subscribe to all command topics
 
 
 def on_message(client, userdata, msg):
     global index_room
     print(f"Message received at {msg.topic} with message {msg.payload.decode()}")
     topic = msg.topic.split('/')
+
     if "config" in topic:
         if saved_rooms.get(msg.payload.decode()) is None:
             room_name = f"Room{index_room}"
@@ -34,11 +35,9 @@ def on_message(client, userdata, msg):
             print(f"Published {room_name} at TOPIC {msg.topic}/room")
 
     elif "telemetry" in topic:
-        room_name = topic[2]
-        # print({"room": room_name, "type": topic[-1], "value": msg.payload.decode()})
         requests.post(
             API_URL,
-            json={"room": room_name, "type": topic[-1], "value": msg.payload.decode()}
+            json={"room": topic[2], "type": topic[-1], "value": msg.payload.decode()}
         )
 
 
@@ -53,31 +52,10 @@ def send_command(params):
                 "indoor-light-mode": "indoor", "indoor-light-level": "indoor-level",
                 "outdoor-light-mode": "outdoor", "outdoor-light-level": "outdoor-level"}
 
-    # if type_dev == "air-conditioner-mode":
-    #     topic += "air-conditioner"
-    #
-    # elif type_dev == "blind-mode":
-    #     topic += "blind"
-    #
-    # elif type_dev == "blind-level":
-    #     topic += "blind-level"
-    #
-    # elif type_dev == "indoor-light-mode":
-    #     topic += "indoor"
-    #
-    # elif type_dev == "indoor-light-level":
-    #     topic += "indoor-level"
-    #
-    # elif type_dev == "outdoor-light-mode":
-    #     topic += "outdoor"
-    #
-    # elif type_dev == "outdoor-light-level":
-    #     topic += "outdoor-level"
-    if type_dev in commands:
-        topic += commands[type_dev]
-    else:
+    if type_dev not in commands:
         return {"response": "Incorrect type param"}, 401
 
+    topic += commands[type_dev]
     client.publish(topic, payload=json.dumps({"mode": value}), qos=0, retain=True)
     print(f"Command message has been sent through {topic}")
     return {"response": "Message sent successfully"}, 200
