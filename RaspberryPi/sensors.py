@@ -241,15 +241,15 @@ if __name__ == "__main__":
     outdoor_level_topic = f"{telemetry_topic}outdoor-level"
     sensors = {
         "indoor_light": {
-            "active": True,
+            "active": 1,
             "level": random.randint(0, 100)
         },
         "outside_light": {
-            "active": True,
+            "active": 1,
             "level": random.randint(0, 100)
         },
         "blind": {
-            "is_open": True,
+            "is_open": 1,
             "level": random.randint(0, 180)
         },
         "air_conditioner": {
