@@ -193,19 +193,19 @@ def on_message(client, userdata, msg):
             global sensors
             print("Received AC command")
             payload = json.loads(msg.payload)
-            sensors["air_conditioner"]["level"] = payload["mode"]
+            sensors["air_conditioner"]["active"] = payload["mode"]
 
         if topic[-1] == "indoor":
             global sensors
             print("Received indoor command")
             payload = json.loads(msg.payload)
-            sensors["indoor_light"]["level"] = payload["mode"]
+            sensors["indoor_light"]["active"] = payload["mode"]
 
         if topic[-1] == "outdoor":
             global sensors
             print("Received outdoor command")
             payload = json.loads(msg.payload)
-            sensors["outside_light"]["level"] = payload["mode"]
+            sensors["outside_light"]["active"] = payload["mode"]
 
 
 def on_publish(client, userdata, result):
@@ -228,13 +228,17 @@ if __name__ == "__main__":
 
     room_number = "Room1"
     CONFIG_TOPIC = f"hotel/rooms/{room_number}/config"
-    TELEMETRY_TOPIC = f"hotel/rooms/{room_number}/telemetry/"
-    TEMPERATURE_TOPIC = f"{TELEMETRY_TOPIC}temperature"
-    AIR_CONDITIONER_TOPIC = f"{TELEMETRY_TOPIC}air_conditioner"
-    BLIND_TOPIC = f"{TELEMETRY_TOPIC}blind"
-    PRESENCE_TOPIC = f"{TELEMETRY_TOPIC}presence"
-    INDOOR_TOPIC = f"{TELEMETRY_TOPIC}indoor"
-    OUTDOOR_TOPIC = f"{TELEMETRY_TOPIC}outdoor"
+    telemetry_topic = f"hotel/rooms/{room_number}/telemetry/"
+    temperature_topic = f"{telemetry_topic}temperature"
+    air_conditioner_mode_topic = f"{telemetry_topic}air-conditioner-mode"
+    air_conditioner_level_topic = f"{telemetry_topic}air-conditioner-level"
+    blind_mode_topic = f"{telemetry_topic}blind-mode"
+    blind_level_topic = f"{telemetry_topic}blind-level"
+    presence_topic = f"{telemetry_topic}presence"
+    indoor_mode_topic = f"{telemetry_topic}indoor-mode"
+    indoor_level_topic = f"{telemetry_topic}indoor-level"
+    outdoor_mode_topic = f"{telemetry_topic}outdoor-mode"
+    outdoor_level_topic = f"{telemetry_topic}outdoor-level"
     sensors = {
         "indoor_light": {
             "active": True,
@@ -300,15 +304,18 @@ if __name__ == "__main__":
             blind_thread.start()
 
             while not kill:
-                client.publish(PRESENCE_TOPIC,payload=str(sensors["presence"]["detected"]),qos=0, retain=False)
+                client.publish(presence_topic,payload=str(sensors["presence"]["detected"]),qos=0, retain=False)
                 print(f'Published Presence {sensors["presence"]["detected"]}')
 
-                client.publish(TEMPERATURE_TOPIC, payload=str(sensors["temperature"]["temperature"]),qos=0, retain=False)
+                client.publish(temperature_topic, payload=str(sensors["temperature"]["temperature"]),qos=0, retain=False)
                 print(f'Published Temperature {sensors["temperature"]["temperature"]}')
 
-                client.publish(AIR_CONDITIONER_TOPIC, payload=str(sensors["air_conditioner"]["level"]), qos=0, retain=False)
-                print(f'Published AC {sensors["air_conditioner"]["level"]}')
+                client.publish(air_conditioner_mode_topic, payload=str(sensors["air_conditioner"]["mode"]), qos=0, retain=False)
+                print(f'Published AC mode{sensors["air_conditioner"]["mode"]}')
 
+                client.publish(air_conditioner_level_topic, payload=str(sensors["air_conditioner"]["level"]), qos=0,
+                               retain=False)
+                print(f'Published AC level {sensors["air_conditioner"]["level"]}')
                 time.sleep(5)
 
             motor_thread.join()
