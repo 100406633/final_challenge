@@ -47,9 +47,6 @@ def send_command(params):
     value = params["value"]
     room = params["room"]
 
-    # print(json.dumps({"mode": value}))
-    # client.publish(f"hotel/rooms/{room}/test", payload="test", qos=0, retain=True)
-
     if type_dev == "air-conditioner-mode":
         topic = f"hotel/rooms/{room}/command/air-conditioner"
         client.publish(topic, payload=json.dumps({"mode": value}), qos=0, retain=True)
