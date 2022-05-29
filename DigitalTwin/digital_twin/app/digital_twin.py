@@ -118,11 +118,16 @@ def connect_mqtt_1884():
     client.on_message = on_message_1884
     # client.on_disconnect = on_disconnect_1884
 
-    while not connect_raspberry or room_number == "":
-        print(f"WAITING PHYSICAL ROOM NUMBER IN THREAD {threading.currentThread().ident}")
+    while room_number == "":
+        print(f"WAITING ROOM NUMBER IN THREAD {threading.currentThread().ident}")
         time.sleep(1)
 
     client.connect(MQTT_SERVER, MQTT_2_PORT, 60)
+
+    while not connect_raspberry:
+        print(f"WAITING PHYSICAL ROOM NUMBER IN THREAD {threading.currentThread().ident}")
+        time.sleep(1)
+
     air_conditioner_command_topic = f"hotel/rooms/{room_number}/command/air-conditioner"
     client.loop_start()
 
