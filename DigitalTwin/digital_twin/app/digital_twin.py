@@ -21,9 +21,6 @@ def on_connect_1883(client, userdata, flags, rc):
     client.subscribe(CONTAINER_CONFIG_TOPIC + "/room")
     print(f"Subscribed to, {CONTAINER_CONFIG_TOPIC}/room")
 
-    client.subscribe(ALL_COMMAND_TOPICS)
-    print(f"Subscribed to, {ALL_COMMAND_TOPICS}")
-
 
 def on_message_1883(client, userdata, msg):
     print(f"Message received in MQTT-1883 {msg.topic} with message {msg.payload.decode()}")
@@ -32,6 +29,10 @@ def on_message_1883(client, userdata, msg):
         global room_number
         room_number = msg.payload.decode()
         print(f"Room number received as: {room_number}")
+
+        all_command_topics = f"hotel/rooms/{room_number}/command/+"
+        client.subscribe(all_command_topics)
+        print(f"Subscribed to, {all_command_topics}")
 
     elif "command" in topic:
         global sensors
@@ -275,7 +276,6 @@ if __name__ == "__main__":
     room_number = ""
     container_id = get_host_name()
     CONTAINER_CONFIG_TOPIC = f"hotel/rooms/{container_id}/config"
-    ALL_COMMAND_TOPICS = f"hotel/rooms/{room_number}/command/+"
 
     sensors = {
         "indoor_light": {
