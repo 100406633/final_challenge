@@ -205,10 +205,12 @@ def destroy():
 
 
 def on_connect(client, userdata, flags, rc):
-    global room_number
+    global room_number, command_topic, CONFIG_TOPIC
     print("Digital Twin connected with code:", rc)
     client.publish(CONFIG_TOPIC, payload=room_number, qos=0, retain=False)
     print("Sent room number", room_number, "to topic", CONFIG_TOPIC)
+
+    client.subscribe(command_topic)
 
 
 def on_message(client, userdata, msg):
@@ -272,7 +274,7 @@ if __name__ == "__main__":
     outdoor_mode_topic = f"{telemetry_topic}outdoor-mode"
     outdoor_level_topic = f"{telemetry_topic}outdoor-level"
 
-
+    command_topic = f"hotel/rooms/{room_number}/command/+"
     # pwm = None
     # servo_pwm = None
     motor_pin_a = 24
