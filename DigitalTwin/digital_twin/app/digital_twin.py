@@ -155,13 +155,20 @@ def connect_mqtt_1884():
     client.connect(MQTT_SERVER, MQTT_2_PORT, 60)
     client.loop_start()
 
-    while not connect_raspberry:
-        print(f"WAITING PHYSICAL ROOM NUMBER IN THREAD {threading.current_thread().ident}")
-        time.sleep(1)
+    # if digital twin must send commands even if the raspberry Pi is not connected, don't do this loop
+    # while not connect_raspberry:
+    #     print(f"WAITING PHYSICAL ROOM NUMBER IN THREAD {threading.current_thread().ident}")
+    #     time.sleep(1)
 
     air_conditioner_command_topic = f"hotel/rooms/{room_number}/command/air-conditioner"
+    blind_topic = f"hotel/rooms/{room_number}/command/blind"
+    indoor_topic = f"hotel/rooms/{room_number}/command/indoor"
+    outdoor_topic = f"hotel/rooms/{room_number}/command/outdoor"
 
     current_air_conditioner_mode = 0
+    current_blind_mode = 0
+    current_indoor_mode = 0
+    current_outdoor_mode = 0
 
     while True:
         if sensors["air_conditioner"]["active"] != current_air_conditioner_mode:
@@ -169,6 +176,24 @@ def connect_mqtt_1884():
                            payload=json.dumps({"mode": sensors["air_conditioner"]["active"]}), qos=0, retain=False)
             print(f'Published {sensors["air_conditioner"]["active"]} in {air_conditioner_command_topic}')
             current_air_conditioner_mode = sensors["air_conditioner"]["active"]
+
+        if sensors["blind"]["is_open"] != current_blind_mode:
+            client.publish(blind_topic,
+                           payload=json.dumps({"mode": sensors["blind"]["is_open"]}), qos=0, retain=False)
+            print(f'Published {sensors["blind"]["is_open"]} in {blind_topic}')
+            current_blind_mode = sensors["blind"]["is_open"]
+
+        if sensors["indoor_light"]["active"] != current_indoor_mode:
+            client.publish(indoor_topic,
+                           payload=json.dumps({"mode": sensors["indoor_light"]["active"]}), qos=0, retain=False)
+            print(f'Published {sensors["indoor_light"]["active"]} in {indoor_topic}')
+            current_indoor_mode = sensors["indoor_light"]["active"]
+
+        if sensors["outside_light"]["active"] != current_outdoor_mode:
+            client.publish(outdoor_topic,
+                           payload=json.dumps({"mode": sensors["outside_light"]["active"]}), qos=0, retain=False)
+            print(f'Published {sensors["outside_light"]["active"]} in {outdoor_topic}')
+            current_outdoor_mode = sensors["outside_light"]["active"]
         time.sleep(1)
 
     client.loop_stop()
