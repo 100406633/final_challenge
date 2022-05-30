@@ -365,27 +365,27 @@ def randomize_sensors():
     if not connect_raspberry:
         sensors["indoor_light"]["active"] = random.randint(0, 1)
         sensors["indoor_light"]["level"] = random.randint(0, 100)
-        sensors["indoor_light"]["timestamp"] = datetime.datetime.utcnow()
+        sensors["indoor_light"]["timestamp"] = str(datetime.datetime.utcnow())
 
         sensors["outside_light"]["active"] = random.randint(0, 1)
         sensors["outside_light"]["level"] = random.randint(0, 100)
-        sensors["outside_light"]["timestamp"] = datetime.datetime.utcnow()
+        sensors["outside_light"]["timestamp"] = str(datetime.datetime.utcnow())
 
         sensors["blind"]["is_open"] = random.randint(0, 1)
         sensors["blind"]["level"] = random.randint(0, 180)
-        sensors["blind"]["timestamp"] = datetime.datetime.utcnow()
+        sensors["blind"]["timestamp"] = str(datetime.datetime.utcnow())
 
         sensors["air_conditioner"]["active"] = random.randint(0, 2)
         sensors["air_conditioner"]["level"] = random.randint(0, 100)
-        sensors["air_conditioner"]["timestamp"] = datetime.datetime.utcnow()
+        sensors["air_conditioner"]["timestamp"] = str(datetime.datetime.utcnow())
 
         sensors["presence"]["active"] = True if random.randint(0, 1) == 1 else False
         sensors["presence"]["detected"] = random.randint(0, 1)
-        sensors["presence"]["timestamp"] = datetime.datetime.utcnow()
+        sensors["presence"]["timestamp"] = str(datetime.datetime.utcnow())
 
         sensors["temperature"]["active"] = True if random.randint(0, 1) == 1 else False
         sensors["temperature"]["temperature"] = random.randint(0, 40)
-        sensors["temperature"]["timestamp"] = datetime.datetime.utcnow()
+        sensors["temperature"]["timestamp"] = str(datetime.datetime.utcnow())
 
         print("Set randomized sensors")
         pprint.pprint(sensors)
@@ -407,32 +407,32 @@ if __name__ == "__main__":
         "indoor_light": {
             "active": random.randint(0, 1),
             "level": random.randint(0, 100),
-            "timestamp": datetime.datetime.utcnow()
+            "timestamp": str(datetime.datetime.utcnow())
         },
         "outside_light": {
             "active": random.randint(0, 1),
             "level": random.randint(0, 100),
-            "timestamp": datetime.datetime.utcnow()
+            "timestamp": str(datetime.datetime.utcnow())
         },
         "blind": {
             "is_open": random.randint(0, 1),
             "level": random.randint(0, 180),
-            "timestamp": datetime.datetime.utcnow()
+            "timestamp": str(datetime.datetime.utcnow())
         },
         "air_conditioner": {
             "active": random.randint(0, 2),
             "level": random.randint(0, 100),
-            "timestamp": datetime.datetime.utcnow()
+            "timestamp": str(datetime.datetime.utcnow())
         },
         "presence": {
             "active": True if random.randint(0, 1) == 1 else False,
             "detected": random.randint(0, 1),
-            "timestamp": datetime.datetime.utcnow()
+            "timestamp": str(datetime.datetime.utcnow())
         },
         "temperature": {
             "active": True if random.randint(0, 1) == 1 else False,
             "temperature": random.randint(0, 40),
-            "timestamp": datetime.datetime.utcnow()
+            "timestamp": str(datetime.datetime.utcnow())
         }
     }
 
