@@ -195,6 +195,7 @@ def connect_mqtt_1883():
         if last_will_sent:
             client.publish(last_will_topic, payload="Raspberry has disconnected", qos=0, retain=False)
             print(f'Published Raspberry has disconnected in {last_will_topic}')
+            last_will_sent = False
         time.sleep(1)
     client.loop_stop()
 
