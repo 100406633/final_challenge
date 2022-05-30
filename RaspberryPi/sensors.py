@@ -368,34 +368,50 @@ if __name__ == "__main__":
             sensor_thread.start()
 
             while not kill:
-                client.publish(presence_topic, payload=str(sensors["presence"]["detected"]), qos=0, retain=False)
+                presence = json.dumps({"value": sensors["presence"]["detected"], "timestamp": datetime.datetime.utcnow()})
+                client.publish(presence_topic, payload=presence, qos=0, retain=False)
                 print(f'Published Presence {sensors["presence"]["detected"]}')
 
-                client.publish(temperature_topic, payload=str(sensors["temperature"]["temperature"]), qos=0, retain=False)
+                temperature = json.dumps(
+                    {"value": sensors["temperature"]["temperature"], "timestamp": datetime.datetime.utcnow()})
+                client.publish(temperature_topic, payload=temperature, qos=0, retain=False)
                 print(f'Published Temperature {sensors["temperature"]["temperature"]}')
 
-                client.publish(air_conditioner_mode_topic, payload=str(sensors["air_conditioner"]["active"]), qos=0, retain=False)
+                air_conditioner_mode = json.dumps(
+                    {"value": sensors["air_conditioner"]["active"], "timestamp": datetime.datetime.utcnow()})
+                client.publish(air_conditioner_mode_topic, payload=air_conditioner_mode, qos=0, retain=False)
                 print(f'Published AC mode{sensors["air_conditioner"]["active"]}')
 
-                client.publish(air_conditioner_level_topic, payload=str(sensors["air_conditioner"]["level"]), qos=0, retain=False)
+                air_conditioner_level = json.dumps(
+                    {"value": sensors["air_conditioner"]["level"], "timestamp": datetime.datetime.utcnow()})
+                client.publish(air_conditioner_level_topic, payload=air_conditioner_level, qos=0, retain=False)
                 print(f'Published AC level {sensors["air_conditioner"]["level"]}')
 
-                client.publish(blind_mode_topic, payload=str(sensors["blind"]["is_open"]), qos=0, retain=False)
+                blind_mode = json.dumps({"value": sensors["blind"]["is_open"], "timestamp": datetime.datetime.utcnow()})
+                client.publish(blind_mode_topic, payload=blind_mode, qos=0, retain=False)
                 print(f'Published Blind mode{sensors["blind"]["is_open"]}')
 
-                client.publish(blind_level_topic, payload=str(sensors["blind"]["level"]), qos=0, retain=False)
+                blind_level = json.dumps({"value": sensors["blind"]["level"], "timestamp": datetime.datetime.utcnow()})
+                client.publish(blind_level_topic, payload=blind_level, qos=0, retain=False)
                 print(f'Published Blind level {sensors["blind"]["level"]}')
 
-                client.publish(indoor_mode_topic, payload=str(sensors["indoor_light"]["active"]), qos=0, retain=False)
+                indoor_light_mode = json.dumps(
+                    {"value": sensors["indoor_light"]["active"], "timestamp": datetime.datetime.utcnow()})
+                client.publish(indoor_mode_topic, payload=indoor_light_mode, qos=0, retain=False)
                 print(f'Published Indoor Light mode{sensors["indoor_light"]["active"]}')
 
-                client.publish(indoor_level_topic, payload=str(sensors["indoor_light"]["level"]), qos=0, retain=False)
+                indoor_level = json.dumps({"value": sensors["indoor_light"]["level"], "timestamp": datetime.datetime.utcnow()})
+                client.publish(indoor_level_topic, payload=indoor_level, qos=0, retain=False)
                 print(f'Published Indoor Light level {sensors["indoor_light"]["level"]}')
 
-                client.publish(outdoor_mode_topic, payload=str(sensors["outside_light"]["active"]), qos=0, retain=False)
+                outdoor_light_mode = json.dumps(
+                    {"value": sensors["outside_light"]["active"], "timestamp": datetime.datetime.utcnow()})
+                client.publish(outdoor_mode_topic, payload=outdoor_light_mode, qos=0, retain=False)
                 print(f'Published Outdoor Light mode{sensors["outside_light"]["active"]}')
 
-                client.publish(outdoor_level_topic, payload=str(sensors["outside_light"]["level"]), qos=0, retain=False)
+                outdoor_light_level = json.dumps(
+                    {"value": sensors["outside_light"]["level"], "timestamp": datetime.datetime.utcnow()})
+                client.publish(outdoor_level_topic, payload=outdoor_light_level, qos=0, retain=False)
                 print(f'Published Outdoor Light level {sensors["outside_light"]["level"]}')
                 time.sleep(5)
 

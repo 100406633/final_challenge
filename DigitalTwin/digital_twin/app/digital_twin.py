@@ -1,3 +1,4 @@
+import datetime
 import random
 import os
 import time
@@ -120,52 +121,72 @@ def connect_mqtt_1883():
 
     while True:
         if sensors["temperature"]["temperature"] != current_sensors["temperature"]["temperature"]:
-            client.publish(temperature_topic, payload=str(sensors["temperature"]["temperature"]), qos=0, retain=False)
+            temperature = json.dumps({"value": sensors["temperature"]["temperature"],
+                                      "timestamp": sensors["temperature"]["timestamp"]})
+            client.publish(temperature_topic, payload=temperature, qos=0, retain=False)
             print(f'Published {sensors["temperature"]["temperature"]} in {temperature_topic}')
             current_sensors["temperature"]["temperature"] = sensors["temperature"]["temperature"]
 
         if sensors["air_conditioner"]["active"] != current_sensors["air_conditioner"]["active"]:
-            client.publish(air_conditioner_mode_topic, payload=str(sensors["air_conditioner"]["active"]), qos=0, retain=False)
+            air_conditioner_mode = json.dumps({"value": sensors["air_conditioner"]["active"],
+                                               "timestamp": sensors["air_conditioner"]["timestamp"]})
+            client.publish(air_conditioner_mode_topic, payload=air_conditioner_mode, qos=0, retain=False)
             print(f'Published {sensors["air_conditioner"]["active"]} in {air_conditioner_mode_topic}')
             current_sensors["air_conditioner"]["active"] = sensors["air_conditioner"]["active"]
 
         if sensors["air_conditioner"]["level"] != current_sensors["air_conditioner"]["level"]:
-            client.publish(air_conditioner_level_topic, payload=str(sensors["air_conditioner"]["level"]), qos=0, retain=False)
+            air_conditioner_level = json.dumps({"value": sensors["air_conditioner"]["level"],
+                                                "timestamp": sensors["air_conditioner"]["timestamp"]})
+            client.publish(air_conditioner_level_topic, payload=air_conditioner_level, qos=0, retain=False)
             print(f'Published {sensors["air_conditioner"]["level"]} in {air_conditioner_level_topic}')
             current_sensors["air_conditioner"]["level"] = sensors["air_conditioner"]["level"]
 
         if sensors["presence"]["detected"] != current_sensors["presence"]["detected"]:
-            client.publish(presence_topic, payload=str(sensors["presence"]["detected"]), qos=0, retain=False)
+            presence = json.dumps({"value": sensors["presence"]["detected"],
+                                   "timestamp": sensors["presence"]["timestamp"]})
+            client.publish(presence_topic, payload=presence, qos=0, retain=False)
             print(f'Published {sensors["presence"]["detected"]} in {presence_topic}')
             current_sensors["presence"]["detected"] = sensors["presence"]["detected"]
 
         if sensors["indoor_light"]["active"] != current_sensors["indoor_light"]["active"]:
-            client.publish(indoor_mode_topic, payload=str(sensors["indoor_light"]["active"]), qos=0, retain=False)
+            indoor_light_mode = json.dumps({"value": sensors["indoor_light"]["active"],
+                                            "timestamp": sensors["indoor_light"]["timestamp"]})
+            client.publish(indoor_mode_topic, payload=indoor_light_mode, qos=0, retain=False)
             print(f'Published {sensors["indoor_light"]["active"]} in {indoor_mode_topic}')
             current_sensors["indoor_light"]["active"] = sensors["indoor_light"]["active"]
 
         if sensors["indoor_light"]["level"] != current_sensors["indoor_light"]["level"]:
-            client.publish(indoor_level_topic, payload=str(sensors["indoor_light"]["level"]), qos=0, retain=False)
+            indoor_light_level = json.dumps({"value": sensors["indoor_light"]["level"],
+                                             "timestamp": sensors["indoor_light"]["timestamp"]})
+            client.publish(indoor_level_topic, payload=indoor_light_level, qos=0, retain=False)
             print(f'Published {sensors["indoor_light"]["level"]} in {indoor_level_topic}')
             current_sensors["indoor_light"]["level"] = sensors["indoor_light"]["level"]
 
         if sensors["outside_light"]["active"] != current_sensors["outside_light"]["active"]:
-            client.publish(outdoor_mode_topic, payload=str(sensors["outside_light"]["active"]), qos=0, retain=False)
+            outdoor_light_mode = json.dumps({"value": sensors["outside_light"]["active"],
+                                             "timestamp": sensors["outside_light"]["timestamp"]})
+            client.publish(outdoor_mode_topic, payload=outdoor_light_mode, qos=0, retain=False)
             print(f'Published {sensors["outside_light"]["active"]} in {outdoor_mode_topic}')
             current_sensors["outside_light"]["active"] = sensors["outside_light"]["active"]
 
         if sensors["outside_light"]["level"] != current_sensors["outside_light"]["level"]:
-            client.publish(outdoor_level_topic, payload=str(sensors["outside_light"]["level"]), qos=0, retain=False)
+            outdoor_light_level = json.dumps({"value": sensors["outside_light"]["level"],
+                                              "timestamp": sensors["outside_light"]["timestamp"]})
+            client.publish(outdoor_level_topic, payload=outdoor_light_level, qos=0, retain=False)
             print(f'Published {sensors["outside_light"]["level"]} in {outdoor_level_topic}')
             current_sensors["outside_light"]["level"] = sensors["outside_light"]["level"]
 
         if sensors["blind"]["is_open"] != current_sensors["blind"]["is_open"]:
-            client.publish(blind_mode_topic, payload=str(sensors["blind"]["is_open"]), qos=0, retain=False)
+            blind_mode = json.dumps({"value": sensors["blind"]["is_open"],
+                                     "timestamp": sensors["blind"]["timestamp"]})
+            client.publish(blind_mode_topic, payload=blind_mode, qos=0, retain=False)
             print(f'Published {sensors["blind"]["is_open"]} in {blind_mode_topic}')
             current_sensors["blind"]["is_open"] = sensors["blind"]["is_open"]
 
         if sensors["blind"]["level"] != current_sensors["blind"]["level"]:
-            client.publish(blind_level_topic, payload=str(sensors["blind"]["level"]), qos=0, retain=False)
+            blind_level = json.dumps({"value": sensors["blind"]["level"],
+                                      "timestamp": sensors["blind"]["timestamp"]})
+            client.publish(blind_level_topic, payload=blind_level, qos=0, retain=False)
             print(f'Published {sensors["blind"]["level"]} in {blind_level_topic}')
             current_sensors["blind"]["level"] = sensors["blind"]["level"]
 
@@ -197,43 +218,53 @@ def on_message_1884(client, userdata, msg):
     if "telemetry" in topic:
         if "presence" in topic:
             print(f"Received {topic[-1]} {msg.payload.decode()}")
-            sensors["presence"]["detected"] = int(msg.payload.decode())
+            sensors["presence"]["detected"] = int(msg.payload["value"])
+            sensors["presence"]["timestamp"] = msg.payload["timestamp"]
 
         elif "temperature" in topic:
             print(f"Received {topic[-1]} {msg.payload.decode()}")
-            sensors["temperature"]["temperature"] = int(msg.payload.decode())
+            sensors["temperature"]["temperature"] = int(msg.payload["value"])
+            sensors["temperature"]["timestamp"] = msg.payload["timestamp"]
 
         elif "air-conditioner-mode" in topic:
             print(f"Received {topic[-1]} {msg.payload.decode()}")
-            sensors["air_conditioner"]["active"] = int(msg.payload.decode())
+            sensors["air_conditioner"]["active"] = int(msg.payload["value"])
+            sensors["air_conditioner"]["timestamp"] = msg.payload["timestamp"]
 
         elif "air-conditioner-level" in topic:
             print(f"Received {topic[-1]} {msg.payload.decode()}")
-            sensors["air_conditioner"]["level"] = int(msg.payload.decode())
+            sensors["air_conditioner"]["level"] = int(msg.payload["value"])
+            sensors["air_conditioner"]["timestamp"] = msg.payload["timestamp"]
 
         elif "blind-mode" in topic:
             print(f"Received {topic[-1]} {msg.payload.decode()}")
-            sensors["blind"]["is_open"] = int(msg.payload.decode())
+            sensors["blind"]["is_open"] = int(msg.payload["value"])
+            sensors["blind"]["timestamp"] = msg.payload["timestamp"]
 
         elif "blind-level" in topic:
             print(f"Received {topic[-1]} {msg.payload.decode()}")
-            sensors["blind"]["level"] = int(msg.payload.decode())
+            sensors["blind"]["level"] = int(msg.payload["value"])
+            sensors["blind"]["timestamp"] = msg.payload["timestamp"]
 
         elif "indoor-mode" in topic:
             print(f"Received {topic[-1]} {msg.payload.decode()}")
-            sensors["indoor_light"]["active"] = int(msg.payload.decode())
+            sensors["indoor_light"]["active"] = int(msg.payload["value"])
+            sensors["indoor_light"]["timestamp"] = msg.payload["timestamp"]
 
         elif "indoor-level" in topic:
             print(f"Received {topic[-1]} {msg.payload.decode()}")
-            sensors["indoor_light"]["level"] = int(msg.payload.decode())
+            sensors["indoor_light"]["level"] = int(msg.payload["value"])
+            sensors["indoor_light"]["timestamp"] = msg.payload["timestamp"]
 
         elif "outdoor-mode" in topic:
             print(f"Received {topic[-1]} {msg.payload.decode()}")
-            sensors["outside_light"]["active"] = int(msg.payload.decode())
+            sensors["outside_light"]["active"] = int(msg.payload["value"])
+            sensors["outside_light"]["timestamp"] = msg.payload["timestamp"]
 
         elif "outdoor-level" in topic:
             print(f"Received {topic[-1]} {msg.payload.decode()}")
-            sensors["outside_light"]["level"] = int(msg.payload.decode())
+            sensors["outside_light"]["level"] = int(msg.payload["value"])
+            sensors["outside_light"]["timestamp"] = msg.payload["timestamp"]
 
 
 def on_publish_1884(client, userdata, result):
@@ -334,30 +365,35 @@ def randomize_sensors():
     if not connect_raspberry:
         sensors["indoor_light"]["active"] = random.randint(0, 1)
         sensors["indoor_light"]["level"] = random.randint(0, 100)
+        sensors["indoor_light"]["timestamp"] = datetime.datetime.utcnow()
 
         sensors["outside_light"]["active"] = random.randint(0, 1)
         sensors["outside_light"]["level"] = random.randint(0, 100)
+        sensors["outside_light"]["timestamp"] = datetime.datetime.utcnow()
 
         sensors["blind"]["is_open"] = random.randint(0, 1)
         sensors["blind"]["level"] = random.randint(0, 180)
+        sensors["blind"]["timestamp"] = datetime.datetime.utcnow()
 
         sensors["air_conditioner"]["active"] = random.randint(0, 2)
         sensors["air_conditioner"]["level"] = random.randint(0, 100)
+        sensors["air_conditioner"]["timestamp"] = datetime.datetime.utcnow()
 
         sensors["presence"]["active"] = True if random.randint(0, 1) == 1 else False
         sensors["presence"]["detected"] = random.randint(0, 1)
+        sensors["presence"]["timestamp"] = datetime.datetime.utcnow()
 
         sensors["temperature"]["active"] = True if random.randint(0, 1) == 1 else False
         sensors["temperature"]["temperature"] = random.randint(0, 40)
+        sensors["temperature"]["timestamp"] = datetime.datetime.utcnow()
 
         print("Set randomized sensors")
         pprint.pprint(sensors)
         time.sleep(RANDOMIZE_SENSORS_INTERVAL)
-        # threading.Timer(RANDOMIZE_SENSORS_INTERVAL, randomize_sensors).start()
 
 
 if __name__ == "__main__":
-    RANDOMIZE_SENSORS_INTERVAL = 10
+    RANDOMIZE_SENSORS_INTERVAL = 30
     MQTT_SERVER = os.getenv("MQTT_SERVER_ADDRESS")
     MQTT_1_PORT = int(os.getenv("MQTT_1_SERVER_PORT"))
     MQTT_2_PORT = int(os.getenv("MQTT_2_SERVER_PORT"))
@@ -370,27 +406,33 @@ if __name__ == "__main__":
     sensors = {
         "indoor_light": {
             "active": random.randint(0, 1),
-            "level": random.randint(0, 100)
+            "level": random.randint(0, 100),
+            "timestamp": datetime.datetime.utcnow()
         },
         "outside_light": {
             "active": random.randint(0, 1),
-            "level": random.randint(0, 100)
+            "level": random.randint(0, 100),
+            "timestamp": datetime.datetime.utcnow()
         },
         "blind": {
             "is_open": random.randint(0, 1),
-            "level": random.randint(0, 180)
+            "level": random.randint(0, 180),
+            "timestamp": datetime.datetime.utcnow()
         },
         "air_conditioner": {
             "active": random.randint(0, 2),
-            "level": random.randint(0, 100)
+            "level": random.randint(0, 100),
+            "timestamp": datetime.datetime.utcnow()
         },
         "presence": {
             "active": True if random.randint(0, 1) == 1 else False,
-            "detected": random.randint(0, 1)
+            "detected": random.randint(0, 1),
+            "timestamp": datetime.datetime.utcnow()
         },
         "temperature": {
             "active": True if random.randint(0, 1) == 1 else False,
-            "temperature": random.randint(0, 40)
+            "temperature": random.randint(0, 40),
+            "timestamp": datetime.datetime.utcnow()
         }
     }
 

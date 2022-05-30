@@ -20,7 +20,7 @@ def insert_device_state(params):
             params["room"],
             params["type"],
             params["value"],
-            datetime.datetime.now()
+            params["timestamp"]
         )
         cursor.execute(sql, values)
         db.commit()

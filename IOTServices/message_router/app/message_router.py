@@ -37,7 +37,7 @@ def on_message(client, userdata, msg):
     elif "telemetry" in topic:
         requests.post(
             API_URL,
-            json={"room": topic[2], "type": topic[-1], "value": msg.payload.decode()}
+            json={"room": topic[2], "type": topic[-1], "value": msg.payload["value"], "timestamp": msg.payload["timestamp"]}
         )
 
 

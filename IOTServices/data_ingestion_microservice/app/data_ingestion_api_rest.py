@@ -17,7 +17,7 @@ def device_state():
     if request.method == 'POST':
         print("DATA INGESTION POST", file=sys.stderr)
         params = request.get_json()
-        if len(params) != 3:
+        if len(params) != 4:
             return {"response": "Incorrect parameters"}, 401
         cursor = insert_device_state(params)
         return {"response": f"{cursor.rowcount} records inserted"}, 200
