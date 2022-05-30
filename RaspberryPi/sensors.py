@@ -10,11 +10,11 @@ from openpyxl import load_workbook
 
 sensors = {
         "indoor_light": {
-            "active": 1,
+            "active": 0,
             "level": random.randint(0, 100)
         },
         "outside_light": {
-            "active": 1,
+            "active": 0,
             "level": random.randint(0, 100)
         },
         "blind": {
@@ -42,14 +42,18 @@ def angle_to_duty(angle):
 
 
 def change_servo_pos(pos):
-    global pwm, servo_pwm
+    global servo_pwm, servo_pin
+    GPIO.output(servo_pin, True)
     if pos == 0:
         servo_pwm.ChangeDutyCycle(12.4)
+        GPIO.output(servo_pin, False)
     elif pos == 180:
         servo_pwm.ChangeDutyCycle(2.6)
+        GPIO.output(servo_pin, False)
     else:
         duty = angle_to_duty(pos)
         servo_pwm.ChangeDutyCycle(duty)
+        GPIO.output(servo_pin, False)
 
 
 def setup():
@@ -80,6 +84,9 @@ def setup():
 
     GPIO.output(motor_pin_b, GPIO.LOW)
     GPIO.output(motor_pin_energy, GPIO.HIGH)
+
+
+    change_servo_pos(180)
 
 
 def button_pressed_callback(channel):
@@ -189,6 +196,9 @@ def weather_sensor():
         time.sleep(1)
 
 def destroy():
+    global outdoor_light_pin, indoor_light_pin
+    GPIO.output(indoor_light_pin, GPIO.LOW)
+    GPIO.output(outdoor_light_pin, GPIO.LOW)
     GPIO.cleanup()
 
 
@@ -219,18 +229,21 @@ def on_message(client, userdata, msg):
             print("Received indoor command")
             payload = json.loads(msg.payload)
             sensors["indoor_light"]["active"] = int(payload["mode"])
+            GPIO.output(indoor_light_pin, sensors["indoor_light"]["active"])
+
 
         if topic[-1] == "indoor-level":
             print("Received indoor level command")
             payload = json.loads(msg.payload)
             sensors["indoor_light"]["level"] = int(payload["mode"])
-            if sensors["indoor_light"]["level"] == 1:
+            if sensors["indoor_light"]["active"] == 1:
                 GPIO.output(indoor_light_pin, int(payload["mode"]))
 
         if topic[-1] == "outdoor":
             print("Received outdoor command")
             payload = json.loads(msg.payload)
             sensors["outside_light"]["active"] = int(payload["mode"])
+            GPIO.output(outdoor_light_pin, sensors["outside_light"]["active"])
 
         if topic[-1] == "outdoor-level":
             print("Received outdoor level command")
@@ -248,8 +261,8 @@ def on_message(client, userdata, msg):
             elif payload["mode"] == "1":
                 change_servo_pos(0)
 
-        if topic[-1] == "outdoor":
-            print("Received blind command")
+        if topic[-1] == "blind-level":
+            print("Received blind level command")
             payload = json.loads(msg.payload)
             sensors["blind"]["level"] = int(payload["mode"])
             change_servo_pos(int(payload["mode"]))
@@ -293,6 +306,7 @@ if __name__ == "__main__":
     motor_pin_b = 23
     motor_pin_energy = 25
     servo_pin = 18
+
     red_pin = 13
     green_pin = 20
     blue_pin = 12
@@ -340,6 +354,7 @@ if __name__ == "__main__":
             motor_thread.join()
             rgb_thread.join()
             sensor_thread.join()
+
 
     except KeyboardInterrupt as ex:
         print(f"{ex}\n")
