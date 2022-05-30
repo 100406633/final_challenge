@@ -352,6 +352,7 @@ if __name__ == "__main__":
     color = ""
     kill = False
     sem = threading.Semaphore(2)
+    setup()
 
     client = mqtt.Client()
     connect_mqtt()
@@ -359,7 +360,7 @@ if __name__ == "__main__":
     client.publish(CONFIG_TOPIC, payload=room_number, qos=0, retain=False)
     print(f"Sent room number {room_number}, to topic {CONFIG_TOPIC}")
 
-    setup()
+
     try:
         while True:
             motor_thread = threading.Thread(target=motor)
