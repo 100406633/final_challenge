@@ -380,7 +380,7 @@ if __name__ == "__main__":
         },
         "air_conditioner": {
             "active": random.randint(0, 2),
-            "level": random.randint(0, 100),
+            "level": random.randint(0, 100)
         },
         "presence": {
             "active": True if random.randint(0, 1) == 1 else False,
