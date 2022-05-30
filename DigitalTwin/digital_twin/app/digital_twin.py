@@ -283,6 +283,7 @@ def on_message_1884(client, userdata, msg):
                 sensors["outside_light"]["level"] = int(payload["value"])
                 sensors["outside_light"]["timestamp"] = payload["timestamp"]
 
+
 def on_publish_1884(client, userdata, result):
     pass
 
@@ -305,11 +306,6 @@ def connect_mqtt_1884():
     client.connect(MQTT_SERVER, MQTT_2_PORT, 60)
     client.loop_start()
 
-    #if digital twin must send commands even if the raspberry Pi is not connected, don't do this loop
-    # while not connect_raspberry:
-    #     print(f"WAITING PHYSICAL ROOM NUMBER IN THREAD {threading.current_thread().ident}")
-    #     time.sleep(1)
-
     air_conditioner_command_topic = f"hotel/rooms/{room_number}/command/air-conditioner"
     blind_command_topic = f"hotel/rooms/{room_number}/command/blind"
     blind_level_command_topic = f"hotel/rooms/{room_number}/command/blind-level"
@@ -317,8 +313,6 @@ def connect_mqtt_1884():
     indoor_level_command_topic = f"hotel/rooms/{room_number}/command/indoor-level"
     outdoor_command_topic = f"hotel/rooms/{room_number}/command/outdoor"
     outdoor_level_command_topic = f"hotel/rooms/{room_number}/command/outdoor-level"
-
-
 
     current_air_conditioner_mode = 0
     current_blind_mode = 0
@@ -372,7 +366,7 @@ def connect_mqtt_1884():
             print(f'Published {sensors["outside_light"]["level"]} in {outdoor_level_command_topic}')
             current_outdoor_level = sensors["outside_light"]["level"]
 
-        randomize_sensors()
+        # randomize_sensors()
 
     client.loop_stop()
 
@@ -406,6 +400,11 @@ def randomize_sensors():
 
         print("Set randomized sensors")
         pprint.pprint(sensors)
+
+
+def ramdomize_thread_function():
+    while True:
+        randomize_sensors()
         time.sleep(RANDOMIZE_SENSORS_INTERVAL)
 
 
@@ -457,9 +456,12 @@ if __name__ == "__main__":
     # randomize_sensors()
     mqtt_1883_thread = threading.Thread(target=connect_mqtt_1883, daemon=True)
     mqtt_1884_thread = threading.Thread(target=connect_mqtt_1884, daemon=True)
+    randomize_thread = threading.Thread(target=ramdomize_thread_function, daemon=True)
 
     mqtt_1883_thread.start()
     mqtt_1884_thread.start()
+    randomize_thread.start()
 
     mqtt_1883_thread.join()
     mqtt_1884_thread.join()
+    randomize_thread.join()
