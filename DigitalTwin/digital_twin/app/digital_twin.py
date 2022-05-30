@@ -372,7 +372,7 @@ def connect_mqtt_1884():
             print(f'Published {sensors["outside_light"]["level"]} in {outdoor_level_command_topic}')
             current_outdoor_level = sensors["outside_light"]["level"]
 
-        #randomize_sensors()
+        randomize_sensors()
 
     client.loop_stop()
 
