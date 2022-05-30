@@ -224,62 +224,61 @@ def on_message_1884(client, userdata, msg):
         room_number = msg.payload.decode()
 
     if "telemetry" in topic:
-        payload = json.loads(msg.payload)
-        if "presence" in topic:
-            print(f"Received {topic[-1]} {msg.payload.decode()}")
-            sensors["presence"]["detected"] = int(payload["value"])
-            sensors["presence"]["timestamp"] = payload["timestamp"]
-
-        elif "temperature" in topic:
-            print(f"Received {topic[-1]} {msg.payload.decode()}")
-            sensors["temperature"]["temperature"] = int(payload["value"])
-            sensors["temperature"]["timestamp"] = payload["timestamp"]
-
-        elif "air-conditioner-mode" in topic:
-            print(f"Received {topic[-1]} {msg.payload.decode()}")
-            sensors["air_conditioner"]["active"] = int(payload["value"])
-            sensors["air_conditioner"]["timestamp"] = payload["timestamp"]
-
-        elif "air-conditioner-level" in topic:
-            print(f"Received {topic[-1]} {msg.payload.decode()}")
-            sensors["air_conditioner"]["level"] = int(payload["value"])
-            sensors["air_conditioner"]["timestamp"] = payload["timestamp"]
-
-        elif "blind-mode" in topic:
-            print(f"Received {topic[-1]} {msg.payload.decode()}")
-            sensors["blind"]["is_open"] = int(payload["value"])
-            sensors["blind"]["timestamp"] = payload["timestamp"]
-
-        elif "blind-level" in topic:
-            print(f"Received {topic[-1]} {msg.payload.decode()}")
-            sensors["blind"]["level"] = int(payload["value"])
-            sensors["blind"]["timestamp"] = payload["timestamp"]
-
-        elif "indoor-mode" in topic:
-            print(f"Received {topic[-1]} {msg.payload.decode()}")
-            sensors["indoor_light"]["active"] = int(payload["value"])
-            sensors["indoor_light"]["timestamp"] = payload["timestamp"]
-
-        elif "indoor-level" in topic:
-            print(f"Received {topic[-1]} {msg.payload.decode()}")
-            sensors["indoor_light"]["level"] = int(payload["value"])
-            sensors["indoor_light"]["timestamp"] = payload["timestamp"]
-
-        elif "outdoor-mode" in topic:
-            print(f"Received {topic[-1]} {msg.payload.decode()}")
-            sensors["outside_light"]["active"] = int(payload["value"])
-            sensors["outside_light"]["timestamp"] = payload["timestamp"]
-
-        elif "outdoor-level" in topic:
-            print(f"Received {topic[-1]} {msg.payload.decode()}")
-            sensors["outside_light"]["level"] = int(payload["value"])
-            sensors["outside_light"]["timestamp"] = payload["timestamp"]
-
-        elif "last-will" in topic:
+        if "last-will" in topic:
             print(f"Received {topic[-1]} {msg.payload.decode()}")
             global last_will_sent
             last_will_sent = True
+        else:
+            payload = json.loads(msg.payload)
+            if "presence" in topic:
+                print(f"Received {topic[-1]} {msg.payload.decode()}")
+                sensors["presence"]["detected"] = int(payload["value"])
+                sensors["presence"]["timestamp"] = payload["timestamp"]
 
+            elif "temperature" in topic:
+                print(f"Received {topic[-1]} {msg.payload.decode()}")
+                sensors["temperature"]["temperature"] = int(payload["value"])
+                sensors["temperature"]["timestamp"] = payload["timestamp"]
+
+            elif "air-conditioner-mode" in topic:
+                print(f"Received {topic[-1]} {msg.payload.decode()}")
+                sensors["air_conditioner"]["active"] = int(payload["value"])
+                sensors["air_conditioner"]["timestamp"] = payload["timestamp"]
+
+            elif "air-conditioner-level" in topic:
+                print(f"Received {topic[-1]} {msg.payload.decode()}")
+                sensors["air_conditioner"]["level"] = int(payload["value"])
+                sensors["air_conditioner"]["timestamp"] = payload["timestamp"]
+
+            elif "blind-mode" in topic:
+                print(f"Received {topic[-1]} {msg.payload.decode()}")
+                sensors["blind"]["is_open"] = int(payload["value"])
+                sensors["blind"]["timestamp"] = payload["timestamp"]
+
+            elif "blind-level" in topic:
+                print(f"Received {topic[-1]} {msg.payload.decode()}")
+                sensors["blind"]["level"] = int(payload["value"])
+                sensors["blind"]["timestamp"] = payload["timestamp"]
+
+            elif "indoor-mode" in topic:
+                print(f"Received {topic[-1]} {msg.payload.decode()}")
+                sensors["indoor_light"]["active"] = int(payload["value"])
+                sensors["indoor_light"]["timestamp"] = payload["timestamp"]
+
+            elif "indoor-level" in topic:
+                print(f"Received {topic[-1]} {msg.payload.decode()}")
+                sensors["indoor_light"]["level"] = int(payload["value"])
+                sensors["indoor_light"]["timestamp"] = payload["timestamp"]
+
+            elif "outdoor-mode" in topic:
+                print(f"Received {topic[-1]} {msg.payload.decode()}")
+                sensors["outside_light"]["active"] = int(payload["value"])
+                sensors["outside_light"]["timestamp"] = payload["timestamp"]
+
+            elif "outdoor-level" in topic:
+                print(f"Received {topic[-1]} {msg.payload.decode()}")
+                sensors["outside_light"]["level"] = int(payload["value"])
+                sensors["outside_light"]["timestamp"] = payload["timestamp"]
 
 def on_publish_1884(client, userdata, result):
     pass
