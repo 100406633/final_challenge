@@ -215,6 +215,7 @@ def on_connect_1884(client, userdata, flags, rc):
     client.subscribe(last_will_topic)
     print(f"Subscribed to, {last_will_topic}")
 
+
 def on_message_1884(client, userdata, msg):
     global sensors, room_number, connect_raspberry
     print(f"Message received in MQTT-1884 {msg.topic} with message {msg.payload.decode()}")
@@ -229,6 +230,7 @@ def on_message_1884(client, userdata, msg):
             print(f"Received {topic[-1]} {msg.payload.decode()}")
             global last_will_sent
             last_will_sent = True
+            connect_raspberry = False
         else:
             payload = json.loads(msg.payload)
             if "presence" in topic:
@@ -327,45 +329,46 @@ def connect_mqtt_1884():
     current_outdoor_level = 0
 
     while True:
+
         if sensors["air_conditioner"]["active"] != current_air_conditioner_mode:
             client.publish(air_conditioner_command_topic,
-                           payload=json.dumps({"mode": sensors["air_conditioner"]["active"]}), qos=0, retain=False)
+                           payload=json.dumps({"mode": sensors["air_conditioner"]["active"]}), qos=0, retain= not connect_raspberry)
             print(f'Published {sensors["air_conditioner"]["active"]} in {air_conditioner_command_topic}')
             current_air_conditioner_mode = sensors["air_conditioner"]["active"]
 
         if sensors["blind"]["is_open"] != current_blind_mode:
             client.publish(blind_command_topic,
-                           payload=json.dumps({"mode": sensors["blind"]["is_open"]}), qos=0, retain=False)
+                           payload=json.dumps({"mode": sensors["blind"]["is_open"]}), qos=0, retain= not connect_raspberry)
             print(f'Published {sensors["blind"]["is_open"]} in {blind_command_topic}')
             current_blind_mode = sensors["blind"]["is_open"]
 
         if sensors["blind"]["level"] != current_blind_level:
             client.publish(blind_level_command_topic,
-                           payload=json.dumps({"mode": sensors["blind"]["level"]}), qos=0, retain=False)
+                           payload=json.dumps({"mode": sensors["blind"]["level"]}), qos=0, retain= not connect_raspberry)
             print(f'Published {sensors["blind"]["level"]} in {blind_level_command_topic}')
             current_blind_level = sensors["blind"]["level"]
 
         if sensors["indoor_light"]["active"] != current_indoor_mode:
             client.publish(indoor_command_topic,
-                           payload=json.dumps({"mode": sensors["indoor_light"]["active"]}), qos=0, retain=False)
+                           payload=json.dumps({"mode": sensors["indoor_light"]["active"]}), qos=0, retain= not connect_raspberry)
             print(f'Published {sensors["indoor_light"]["active"]} in {indoor_command_topic}')
             current_indoor_mode = sensors["indoor_light"]["active"]
 
         if sensors["indoor_light"]["level"] != current_indoor_level:
             client.publish(indoor_level_command_topic,
-                           payload=json.dumps({"mode": sensors["indoor_light"]["level"]}), qos=0, retain=False)
+                           payload=json.dumps({"mode": sensors["indoor_light"]["level"]}), qos=0, retain= not connect_raspberry)
             print(f'Published {sensors["indoor_light"]["level"]} in {indoor_level_command_topic}')
             current_indoor_level = sensors["indoor_light"]["level"]
 
         if sensors["outside_light"]["active"] != current_outdoor_mode:
             client.publish(outdoor_command_topic,
-                           payload=json.dumps({"mode": sensors["outside_light"]["active"]}), qos=0, retain=False)
+                           payload=json.dumps({"mode": sensors["outside_light"]["active"]}), qos=0, retain= not connect_raspberry)
             print(f'Published {sensors["outside_light"]["active"]} in {outdoor_command_topic}')
             current_outdoor_mode = sensors["outside_light"]["active"]
 
         if sensors["outside_light"]["level"] != current_outdoor_level:
             client.publish(outdoor_level_command_topic,
-                           payload=json.dumps({"mode": sensors["outside_light"]["level"]}), qos=0, retain=False)
+                           payload=json.dumps({"mode": sensors["outside_light"]["level"]}), qos=0, retain= not connect_raspberry)
             print(f'Published {sensors["outside_light"]["level"]} in {outdoor_level_command_topic}')
             current_outdoor_level = sensors["outside_light"]["level"]
 
@@ -407,7 +410,7 @@ def randomize_sensors():
 
 
 if __name__ == "__main__":
-    RANDOMIZE_SENSORS_INTERVAL = 30
+    RANDOMIZE_SENSORS_INTERVAL = 300
     MQTT_SERVER = os.getenv("MQTT_SERVER_ADDRESS")
     MQTT_1_PORT = int(os.getenv("MQTT_1_SERVER_PORT"))
     MQTT_2_PORT = int(os.getenv("MQTT_2_SERVER_PORT"))
