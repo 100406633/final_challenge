@@ -64,7 +64,7 @@ def setup():
 
 def button_pressed_callback(channel):
     global sensors
-    sensors["presence"]["detected"] = not sensors["presence"]["detected"]
+    sensors["presence"]["detected"] = int(not sensors["presence"]["detected"])
     print(f'changed to {sensors["presence"]["detected"]}\n')
 
 
@@ -103,7 +103,7 @@ def led():
 
 
 def motor():
-    global pwm, servo_pwm, color, sensors
+    global pwm, servo_pwm, color, sensors, current_state
     color = "green"
     while not kill:
         if not sensors["presence"]["detected"] or not sensors["air_conditioner"]["active"]:
@@ -111,33 +111,60 @@ def motor():
             time.sleep(1)
             continue
         temperature = sensors["temperature"]["temperature"]
-        if temperature:
-            upper_bound = 24
-            lower_bound = 21
-            if temperature and lower_bound < temperature < upper_bound:
+        if current_state == "web":
+            if sensors["air_conditioner"]["active"] == 0:
                 pwm.ChangeDutyCycle(0)
+                sensors["air_conditioner"]["level"] = 0
                 sem.acquire()
                 color = "green"
                 sem.release()
-            elif temperature:
-                if temperature < lower_bound:
-                    cycle = abs(lower_bound-temperature) * 10
-                    if cycle > 100:
-                        cycle = 100
-                    #print(f"red {cycle=}")
+            elif sensors["air_conditioner"]["active"] == 1:
+                pwm.ChangeDutyCycle(100)
+                sensors["air_conditioner"]["level"] = 100
+                sem.acquire()
+                color = "red"
+                sem.release()
+            elif sensors["air_conditioner"]["active"] == 2:
+                pwm.ChangeDutyCycle(100)
+                sensors["air_conditioner"]["level"] = 100
+                sem.acquire()
+                color = "blue"
+                sem.release()
+            print("BEFORE SLEEP")
+            time.sleep(5)
+            current_state = "local"
+        else:
+            print(temperature)
+            if temperature:
+                upper_bound = 24
+                lower_bound = 21
+                if temperature and lower_bound < temperature < upper_bound:
+                    pwm.ChangeDutyCycle(0)
                     sem.acquire()
-                    color = "red"
+                    color = "green"
                     sem.release()
-                    pwm.ChangeDutyCycle(cycle)
-                elif temperature > upper_bound:
-                    cycle = abs(temperature - upper_bound) * 10
-                    if cycle > 100:
-                        cycle = 100
-                    #print(f"blue {cycle=}")
-                    sem.acquire()
-                    color = "blue"
-                    sem.release()
-                    pwm.ChangeDutyCycle(cycle)
+                    sensors["air_conditioner"]["level"] = 0
+                elif temperature:
+                    if temperature < lower_bound:
+                        cycle = abs(lower_bound-temperature) * 10
+                        if cycle > 100:
+                            cycle = 100
+                        #print(f"red {cycle=}")
+                        sem.acquire()
+                        color = "red"
+                        sem.release()
+                        pwm.ChangeDutyCycle(cycle)
+                        sensors["air_conditioner"]["level"] = cycle
+                    elif temperature > upper_bound:
+                        cycle = abs(temperature - upper_bound) * 10
+                        if cycle > 100:
+                            cycle = 100
+                        #print(f"blue {cycle=}")
+                        sem.acquire()
+                        color = "blue"
+                        sem.release()
+                        pwm.ChangeDutyCycle(cycle)
+                        sensors["air_conditioner"]["level"] = cycle
 
 
 def weather_sensor():
@@ -185,7 +212,7 @@ def on_connect(client, userdata, flags, rc):
 
 
 def on_message(client, userdata, msg):
-    global outdoor_light_pin, indoor_light_pin
+    global outdoor_light_pin, indoor_light_pin, current_state
     print(f"Message received in MQTT 1884 {msg.topic} with message {msg.payload.decode()}")
     topic = msg.topic.split('/')
     if "config" in topic:
@@ -197,6 +224,7 @@ def on_message(client, userdata, msg):
             print("Received AC command")
             payload = json.loads(msg.payload)
             sensors["air_conditioner"]["active"] = int(payload["mode"])
+            current_state = "web"
 
         if topic[-1] == "indoor":
             print("Received indoor command")
@@ -241,7 +269,7 @@ def on_message(client, userdata, msg):
             change_servo_pos(int(payload["mode"]))
 
 def on_publish(client, userdata, result):
-    print("data published")
+    pass
 
 
 def connect_mqtt():
@@ -273,7 +301,7 @@ if __name__ == "__main__":
         },
         "air_conditioner": {
             "active": random.randint(0, 2),
-            "level": random.randint(10, 30),
+            "level": random.randint(10, 30)
         },
         "presence": {
             "active": True,
@@ -286,7 +314,7 @@ if __name__ == "__main__":
     }
 
     room_number = "Room1"
-
+    current_state = "local"
     CONFIG_TOPIC = f"hotel/rooms/{room_number}/config"
     telemetry_topic = f"hotel/rooms/{room_number}/telemetry/"
 
