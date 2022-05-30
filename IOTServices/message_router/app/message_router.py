@@ -35,9 +35,12 @@ def on_message(client, userdata, msg):
             print(f"Published {room_name} at TOPIC {msg.topic}/room")
 
     elif "telemetry" in topic:
+        print("JSON str", msg.payload.decode())
+        payload = json.loads(msg.payload)
+        print("payload", payload, "payload type", type(payload))
         requests.post(
             API_URL,
-            json={"room": topic[2], "type": topic[-1], "value": msg.payload["value"], "timestamp": msg.payload["timestamp"]}
+            json={"room": topic[2], "type": topic[-1], "value": payload["value"], "timestamp": payload["timestamp"]}
         )
 
 
