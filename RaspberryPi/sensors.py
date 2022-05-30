@@ -17,6 +17,7 @@ def angle_to_duty(angle):
 def change_servo_pos(pos):
     global servo_pwm, servo_pin
     GPIO.output(servo_pin, True)
+    print(f"change_servo_pos: {pos}")
     if pos == 0:
         servo_pwm.ChangeDutyCycle(12.4)
         GPIO.output(servo_pin, False)
@@ -288,7 +289,7 @@ def connect_mqtt():
 
 
 if __name__ == "__main__":
-    MQTT_SERVER = "34.141.27.32"
+    MQTT_SERVER = "34.89.143.36"
     MQTT_PORT = 1884
     is_connected = False
 
