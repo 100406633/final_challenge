@@ -227,14 +227,20 @@ def connect_mqtt_1884():
     #     time.sleep(1)
 
     air_conditioner_command_topic = f"hotel/rooms/{room_number}/command/air-conditioner"
-    blind_topic = f"hotel/rooms/{room_number}/command/blind"
-    indoor_topic = f"hotel/rooms/{room_number}/command/indoor"
-    outdoor_topic = f"hotel/rooms/{room_number}/command/outdoor"
+    blind_command_topic = f"hotel/rooms/{room_number}/command/blind"
+    blind_level_command_topic = f"hotel/rooms/{room_number}/command/blind-level"
+    indoor_command_topic = f"hotel/rooms/{room_number}/command/indoor"
+    indoor_level_command_topic = f"hotel/rooms/{room_number}/command/indoor-level"
+    outdoor_command_topic = f"hotel/rooms/{room_number}/command/outdoor"
+    outdoor_level_command_topic = f"hotel/rooms/{room_number}/command/outdoor-level"
 
     current_air_conditioner_mode = 0
     current_blind_mode = 0
+    current_blind_level = 0
     current_indoor_mode = 0
+    current_indoor_level = 0
     current_outdoor_mode = 0
+    current_outdoor_level = 0
 
     while True:
         if sensors["air_conditioner"]["active"] != current_air_conditioner_mode:
@@ -244,22 +250,40 @@ def connect_mqtt_1884():
             current_air_conditioner_mode = sensors["air_conditioner"]["active"]
 
         if sensors["blind"]["is_open"] != current_blind_mode:
-            client.publish(blind_topic,
+            client.publish(blind_command_topic,
                            payload=json.dumps({"mode": sensors["blind"]["is_open"]}), qos=0, retain=False)
-            print(f'Published {sensors["blind"]["is_open"]} in {blind_topic}')
+            print(f'Published {sensors["blind"]["is_open"]} in {blind_command_topic}')
             current_blind_mode = sensors["blind"]["is_open"]
 
+        if sensors["blind"]["level"] != current_blind_level:
+            client.publish(blind_level_command_topic,
+                           payload=json.dumps({"mode": sensors["blind"]["level"]}), qos=0, retain=False)
+            print(f'Published {sensors["blind"]["level"]} in {blind_level_command_topic}')
+            current_blind_level = sensors["blind"]["level"]
+
         if sensors["indoor_light"]["active"] != current_indoor_mode:
-            client.publish(indoor_topic,
+            client.publish(indoor_command_topic,
                            payload=json.dumps({"mode": sensors["indoor_light"]["active"]}), qos=0, retain=False)
-            print(f'Published {sensors["indoor_light"]["active"]} in {indoor_topic}')
+            print(f'Published {sensors["indoor_light"]["active"]} in {indoor_command_topic}')
             current_indoor_mode = sensors["indoor_light"]["active"]
 
+        if sensors["indoor_light"]["level"] != current_indoor_level:
+            client.publish(indoor_level_command_topic,
+                           payload=json.dumps({"mode": sensors["indoor_light"]["level"]}), qos=0, retain=False)
+            print(f'Published {sensors["indoor_light"]["level"]} in {indoor_level_command_topic}')
+            current_indoor_level = sensors["indoor_light"]["level"]
+
         if sensors["outside_light"]["active"] != current_outdoor_mode:
-            client.publish(outdoor_topic,
+            client.publish(outdoor_command_topic,
                            payload=json.dumps({"mode": sensors["outside_light"]["active"]}), qos=0, retain=False)
-            print(f'Published {sensors["outside_light"]["active"]} in {outdoor_topic}')
+            print(f'Published {sensors["outside_light"]["active"]} in {outdoor_command_topic}')
             current_outdoor_mode = sensors["outside_light"]["active"]
+
+        if sensors["outside_light"]["level"] != current_outdoor_level:
+            client.publish(outdoor_level_command_topic,
+                           payload=json.dumps({"mode": sensors["outside_light"]["level"]}), qos=0, retain=False)
+            print(f'Published {sensors["outside_light"]["level"]} in {outdoor_level_command_topic}')
+            current_outdoor_level = sensors["outside_light"]["level"]
         time.sleep(1)
 
     client.loop_stop()
@@ -292,7 +316,7 @@ def randomize_sensors():
 
 
 if __name__ == "__main__":
-    RANDOMIZE_SENSORS_INTERVAL = 30
+    RANDOMIZE_SENSORS_INTERVAL = 120
     MQTT_SERVER = os.getenv("MQTT_SERVER_ADDRESS")
     MQTT_1_PORT = int(os.getenv("MQTT_1_SERVER_PORT"))
     MQTT_2_PORT = int(os.getenv("MQTT_2_SERVER_PORT"))
