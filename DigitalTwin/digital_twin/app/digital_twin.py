@@ -323,7 +323,8 @@ def connect_mqtt_1884():
                            payload=json.dumps({"mode": sensors["outside_light"]["level"]}), qos=0, retain=False)
             print(f'Published {sensors["outside_light"]["level"]} in {outdoor_level_command_topic}')
             current_outdoor_level = sensors["outside_light"]["level"]
-        time.sleep(1)
+
+        randomize_sensors()
 
     client.loop_stop()
 
@@ -351,11 +352,12 @@ def randomize_sensors():
 
         print("Set randomized sensors")
         pprint.pprint(sensors)
-        threading.Timer(RANDOMIZE_SENSORS_INTERVAL, randomize_sensors).start()
+        time.sleep(RANDOMIZE_SENSORS_INTERVAL)
+        # threading.Timer(RANDOMIZE_SENSORS_INTERVAL, randomize_sensors).start()
 
 
 if __name__ == "__main__":
-    RANDOMIZE_SENSORS_INTERVAL = 300
+    RANDOMIZE_SENSORS_INTERVAL = 10
     MQTT_SERVER = os.getenv("MQTT_SERVER_ADDRESS")
     MQTT_1_PORT = int(os.getenv("MQTT_1_SERVER_PORT"))
     MQTT_2_PORT = int(os.getenv("MQTT_2_SERVER_PORT"))
@@ -392,9 +394,12 @@ if __name__ == "__main__":
         }
     }
 
-    randomize_sensors()
+    # randomize_sensors()
     mqtt_1883_thread = threading.Thread(target=connect_mqtt_1883, daemon=True)
     mqtt_1884_thread = threading.Thread(target=connect_mqtt_1884, daemon=True)
 
     mqtt_1883_thread.start()
     mqtt_1884_thread.start()
+
+    mqtt_1883_thread.join()
+    mqtt_1884_thread.join()
