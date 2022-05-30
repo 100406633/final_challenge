@@ -409,7 +409,7 @@ def ramdomize_thread_function():
 
 
 if __name__ == "__main__":
-    RANDOMIZE_SENSORS_INTERVAL = 10
+    RANDOMIZE_SENSORS_INTERVAL = 60
     MQTT_SERVER = os.getenv("MQTT_SERVER_ADDRESS")
     MQTT_1_PORT = int(os.getenv("MQTT_1_SERVER_PORT"))
     MQTT_2_PORT = int(os.getenv("MQTT_2_SERVER_PORT"))
