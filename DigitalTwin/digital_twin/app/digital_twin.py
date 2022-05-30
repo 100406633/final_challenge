@@ -292,7 +292,7 @@ def randomize_sensors():
 
 
 if __name__ == "__main__":
-    RANDOMIZE_SENSORS_INTERVAL = 30
+    RANDOMIZE_SENSORS_INTERVAL = 120
     MQTT_SERVER = os.getenv("MQTT_SERVER_ADDRESS")
     MQTT_1_PORT = int(os.getenv("MQTT_1_SERVER_PORT"))
     MQTT_2_PORT = int(os.getenv("MQTT_2_SERVER_PORT"))
