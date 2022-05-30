@@ -324,7 +324,7 @@ def connect_mqtt_1884():
             print(f'Published {sensors["outside_light"]["level"]} in {outdoor_level_command_topic}')
             current_outdoor_level = sensors["outside_light"]["level"]
 
-        # randomize_sensors()
+        randomize_sensors()
 
     client.loop_stop()
 
@@ -400,3 +400,6 @@ if __name__ == "__main__":
 
     mqtt_1883_thread.start()
     mqtt_1884_thread.start()
+
+    mqtt_1883_thread.join()
+    mqtt_1884_thread.join()
