@@ -189,12 +189,51 @@ def on_message_1884(client, userdata, msg):
     global sensors, room_number, connect_raspberry
     print(f"Message received in MQTT-1884 {msg.topic} with message {msg.payload.decode()}")
     topic = msg.topic.split('/')
-    if "temperature" in topic:
-        print(f"Received temperature {msg.payload.decode()}")
-        sensors["temperature"]["temperature"] = int(msg.payload.decode())
-    elif "config" in topic:
+
+    if "config" in topic:
         connect_raspberry = True
         room_number = msg.payload.decode()
+
+    if "telemetry" in topic:
+        if "presence" in topic:
+            print(f"Received {topic[-1]} {msg.payload.decode()}")
+            sensors["presence"]["detected"] = int(msg.payload.decode())
+
+        elif "temperature" in topic:
+            print(f"Received {topic[-1]} {msg.payload.decode()}")
+            sensors["temperature"]["temperature"] = int(msg.payload.decode())
+
+        elif "air-conditioner-mode" in topic:
+            print(f"Received {topic[-1]} {msg.payload.decode()}")
+            sensors["air_conditioner"]["active"] = int(msg.payload.decode())
+
+        elif "air-conditioner-level" in topic:
+            print(f"Received {topic[-1]} {msg.payload.decode()}")
+            sensors["air_conditioner"]["level"] = int(msg.payload.decode())
+
+        elif "blind-mode" in topic:
+            print(f"Received {topic[-1]} {msg.payload.decode()}")
+            sensors["blind"]["is_open"] = int(msg.payload.decode())
+
+        elif "blind-level" in topic:
+            print(f"Received {topic[-1]} {msg.payload.decode()}")
+            sensors["blind"]["level"] = int(msg.payload.decode())
+
+        elif "indoor-mode" in topic:
+            print(f"Received {topic[-1]} {msg.payload.decode()}")
+            sensors["indoor_light"]["active"] = int(msg.payload.decode())
+
+        elif "indoor-level" in topic:
+            print(f"Received {topic[-1]} {msg.payload.decode()}")
+            sensors["indoor_light"]["level"] = int(msg.payload.decode())
+
+        elif "outdoor-mode" in topic:
+            print(f"Received {topic[-1]} {msg.payload.decode()}")
+            sensors["outside_light"]["active"] = int(msg.payload.decode())
+
+        elif "outdoor-level" in topic:
+            print(f"Received {topic[-1]} {msg.payload.decode()}")
+            sensors["outside_light"]["level"] = int(msg.payload.decode())
 
 
 def on_publish_1884(client, userdata, result):
@@ -316,7 +355,7 @@ def randomize_sensors():
 
 
 if __name__ == "__main__":
-    RANDOMIZE_SENSORS_INTERVAL = 120
+    RANDOMIZE_SENSORS_INTERVAL = 300
     MQTT_SERVER = os.getenv("MQTT_SERVER_ADDRESS")
     MQTT_1_PORT = int(os.getenv("MQTT_1_SERVER_PORT"))
     MQTT_2_PORT = int(os.getenv("MQTT_2_SERVER_PORT"))

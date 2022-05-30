@@ -8,33 +8,6 @@ import paho.mqtt.client as mqtt
 import RPi.GPIO as GPIO
 from openpyxl import load_workbook
 
-sensors = {
-        "indoor_light": {
-            "active": 0,
-            "level": random.randint(0, 100)
-        },
-        "outside_light": {
-            "active": 0,
-            "level": random.randint(0, 100)
-        },
-        "blind": {
-            "is_open": 1,
-            "level": random.randint(0, 180)
-        },
-        "air_conditioner": {
-            "active": random.randint(0, 2),
-            "level": random.randint(10, 30),
-        },
-        "presence": {
-            "active": True,
-            "detected": 0
-        },
-        "temperature": {
-            "active": True,
-            "temperature": random.randint(0, 40)
-        }
-    }
-
 
 def angle_to_duty(angle):
     time.sleep(2)
@@ -285,15 +258,44 @@ if __name__ == "__main__":
     MQTT_PORT = 1884
     is_connected = False
 
+    sensors = {
+        "indoor_light": {
+            "active": 0,
+            "level": random.randint(0, 100)
+        },
+        "outside_light": {
+            "active": 0,
+            "level": random.randint(0, 100)
+        },
+        "blind": {
+            "is_open": 1,
+            "level": random.randint(0, 180)
+        },
+        "air_conditioner": {
+            "active": random.randint(0, 2),
+            "level": random.randint(10, 30),
+        },
+        "presence": {
+            "active": True,
+            "detected": 0
+        },
+        "temperature": {
+            "active": True,
+            "temperature": random.randint(0, 40)
+        }
+    }
+
     room_number = "Room1"
+
     CONFIG_TOPIC = f"hotel/rooms/{room_number}/config"
     telemetry_topic = f"hotel/rooms/{room_number}/telemetry/"
+
+    presence_topic = f"{telemetry_topic}presence"
     temperature_topic = f"{telemetry_topic}temperature"
     air_conditioner_mode_topic = f"{telemetry_topic}air-conditioner-mode"
     air_conditioner_level_topic = f"{telemetry_topic}air-conditioner-level"
     blind_mode_topic = f"{telemetry_topic}blind-mode"
     blind_level_topic = f"{telemetry_topic}blind-level"
-    presence_topic = f"{telemetry_topic}presence"
     indoor_mode_topic = f"{telemetry_topic}indoor-mode"
     indoor_level_topic = f"{telemetry_topic}indoor-level"
     outdoor_mode_topic = f"{telemetry_topic}outdoor-mode"
@@ -337,24 +339,40 @@ if __name__ == "__main__":
             sensor_thread.start()
 
             while not kill:
-                client.publish(presence_topic,payload=str(sensors["presence"]["detected"]),qos=0, retain=False)
+                client.publish(presence_topic, payload=str(sensors["presence"]["detected"]), qos=0, retain=False)
                 print(f'Published Presence {sensors["presence"]["detected"]}')
 
-                client.publish(temperature_topic, payload=str(sensors["temperature"]["temperature"]),qos=0, retain=False)
+                client.publish(temperature_topic, payload=str(sensors["temperature"]["temperature"]), qos=0, retain=False)
                 print(f'Published Temperature {sensors["temperature"]["temperature"]}')
 
                 client.publish(air_conditioner_mode_topic, payload=str(sensors["air_conditioner"]["active"]), qos=0, retain=False)
                 print(f'Published AC mode{sensors["air_conditioner"]["active"]}')
 
-                client.publish(air_conditioner_level_topic, payload=str(sensors["air_conditioner"]["level"]), qos=0,
-                               retain=False)
+                client.publish(air_conditioner_level_topic, payload=str(sensors["air_conditioner"]["level"]), qos=0, retain=False)
                 print(f'Published AC level {sensors["air_conditioner"]["level"]}')
+
+                client.publish(blind_mode_topic, payload=str(sensors["blind"]["is_open"]), qos=0, retain=False)
+                print(f'Published Blind mode{sensors["blind"]["is_open"]}')
+
+                client.publish(blind_level_topic, payload=str(sensors["blind"]["level"]), qos=0, retain=False)
+                print(f'Published Blind level {sensors["blind"]["level"]}')
+
+                client.publish(indoor_mode_topic, payload=str(sensors["indoor_light"]["active"]), qos=0, retain=False)
+                print(f'Published Indoor Light mode{sensors["indoor_light"]["active"]}')
+
+                client.publish(indoor_level_topic, payload=str(sensors["indoor_light"]["level"]), qos=0, retain=False)
+                print(f'Published Indoor Light level {sensors["indoor_light"]["level"]}')
+
+                client.publish(outdoor_mode_topic, payload=str(sensors["outside_light"]["active"]), qos=0, retain=False)
+                print(f'Published Outdoor Light mode{sensors["outside_light"]["active"]}')
+
+                client.publish(outdoor_level_topic, payload=str(sensors["outside_light"]["level"]), qos=0, retain=False)
+                print(f'Published Outdoor Light level {sensors["outside_light"]["level"]}')
                 time.sleep(5)
 
             motor_thread.join()
             rgb_thread.join()
             sensor_thread.join()
-
 
     except KeyboardInterrupt as ex:
         print(f"{ex}\n")
