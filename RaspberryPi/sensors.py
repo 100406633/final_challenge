@@ -10,8 +10,7 @@ from openpyxl import load_workbook
 
 
 def angle_to_duty(angle):
-    time.sleep(2)
-    return angle/18 + 2
+    return (angle/18) + 3
 
 
 def change_servo_pos(pos):
@@ -19,10 +18,10 @@ def change_servo_pos(pos):
     GPIO.output(servo_pin, True)
     print(f"change_servo_pos: {pos}")
     if pos == 0:
-        servo_pwm.ChangeDutyCycle(12.4)
+        servo_pwm.ChangeDutyCycle(2.5)
         GPIO.output(servo_pin, False)
     elif pos == 180:
-        servo_pwm.ChangeDutyCycle(2.6)
+        servo_pwm.ChangeDutyCycle(12.5)
         GPIO.output(servo_pin, False)
     else:
         duty = angle_to_duty(pos)
@@ -41,7 +40,7 @@ def setup():
 
     GPIO.setup(servo_pin, GPIO.OUT)
     servo_pwm = GPIO.PWM(servo_pin, 50)
-    servo_pwm.start(0)
+    servo_pwm.start(2.5)
 
     GPIO.setup(motor_pin_a, GPIO.OUT)
     GPIO.setup(motor_pin_b, GPIO.OUT)
@@ -58,9 +57,6 @@ def setup():
 
     GPIO.output(motor_pin_b, GPIO.LOW)
     GPIO.output(motor_pin_energy, GPIO.HIGH)
-
-    change_servo_pos(180)
-
 
 def button_pressed_callback(channel):
     global sensors
@@ -134,11 +130,9 @@ def motor():
                 sem.acquire()
                 color = "blue"
                 sem.release()
-            print("BEFORE SLEEP")
             time.sleep(5)
             current_state = "local"
         else:
-            print(temperature)
             if temperature:
                 upper_bound = 24
                 lower_bound = 21
@@ -264,9 +258,9 @@ def on_message(client, userdata, msg):
             payload = json.loads(msg.payload)
             sensors["blind"]["is_open"] = int(payload["mode"])
             if payload["mode"] == "0":
-                change_servo_pos(180)
-            elif payload["mode"] == "1":
                 change_servo_pos(0)
+            elif payload["mode"] == "1":
+                change_servo_pos(180)
 
         elif topic[-1] == "blind-level":
             print("Received blind level command")
