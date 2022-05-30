@@ -9,24 +9,30 @@ import RPi.GPIO as GPIO
 from openpyxl import load_workbook
 
 
-def angle_to_duty(angle):
-    return (angle/18) + 3
+# def angle_to_duty(angle):
+#     return 2 + angle/18
 
 
 def change_servo_pos(pos):
-    global servo_pwm, servo_pin
-    GPIO.output(servo_pin, True)
+    global servo_pwm
+    # GPIO.output(servo_pin, True)
     print(f"change_servo_pos: {pos}")
-    if pos == 0:
-        servo_pwm.ChangeDutyCycle(2.5)
-        GPIO.output(servo_pin, False)
-    elif pos == 180:
-        servo_pwm.ChangeDutyCycle(12.5)
-        GPIO.output(servo_pin, False)
-    else:
-        duty = angle_to_duty(pos)
-        servo_pwm.ChangeDutyCycle(duty)
-        GPIO.output(servo_pin, False)
+    # if pos == 0:
+    #     servo_pwm.ChangeDutyCycle(2)
+    #     time.sleep(0.5)
+    #     servo_pwm.ChangeDutyCycle(0)
+    #     # GPIO.output(servo_pin, False)
+    # elif pos == 180:
+    #     servo_pwm.ChangeDutyCycle(12)
+    #     time.sleep(0.5)
+    #     servo_pwm.ChangeDutyCycle(0)
+    #     # GPIO.output(servo_pin, False)
+    # else:
+    # duty = angle_to_duty(pos)
+    servo_pwm.ChangeDutyCycle(2 + (pos/18))
+    time.sleep(0.5)
+    servo_pwm.ChangeDutyCycle(0)
+        # GPIO.output(servo_pin, False)
 
 
 def setup():
@@ -40,7 +46,7 @@ def setup():
 
     GPIO.setup(servo_pin, GPIO.OUT)
     servo_pwm = GPIO.PWM(servo_pin, 50)
-    servo_pwm.start(2.5)
+    servo_pwm.start(0)
 
     GPIO.setup(motor_pin_a, GPIO.OUT)
     GPIO.setup(motor_pin_b, GPIO.OUT)
@@ -57,6 +63,7 @@ def setup():
 
     GPIO.output(motor_pin_b, GPIO.LOW)
     GPIO.output(motor_pin_energy, GPIO.HIGH)
+
 
 def button_pressed_callback(channel):
     global sensors
@@ -195,7 +202,9 @@ def weather_sensor():
 
 
 def destroy():
-    global outdoor_light_pin, indoor_light_pin
+    global outdoor_light_pin, indoor_light_pin, servo_pwm, pwm
+    pwm.stop()
+    servo_pwm.stop()
     GPIO.output(indoor_light_pin, GPIO.LOW)
     GPIO.output(outdoor_light_pin, GPIO.LOW)
     GPIO.cleanup()
@@ -360,7 +369,6 @@ if __name__ == "__main__":
     client.publish(CONFIG_TOPIC, payload=room_number, qos=0, retain=False)
     print(f"Sent room number {room_number}, to topic {CONFIG_TOPIC}")
 
-
     try:
         while True:
             motor_thread = threading.Thread(target=motor)
@@ -376,9 +384,9 @@ if __name__ == "__main__":
                 client.publish(presence_topic, payload=presence, qos=0, retain=False)
                 print(f'Published Presence {sensors["presence"]["detected"]}')
 
-                temperature = json.dumps(
+                temperature_value = json.dumps(
                     {"value": sensors["temperature"]["temperature"], "timestamp": str(datetime.datetime.utcnow())})
-                client.publish(temperature_topic, payload=temperature, qos=0, retain=False)
+                client.publish(temperature_topic, payload=temperature_value, qos=0, retain=False)
                 print(f'Published Temperature {sensors["temperature"]["temperature"]}')
 
                 air_conditioner_mode = json.dumps(
