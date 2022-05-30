@@ -83,7 +83,7 @@ def on_disconnect_1883(client, userdata, flags):
 
 
 def connect_mqtt_1883():
-    global room_number, MQTT_SERVER, MQTT_1_PORT, sensors
+    global room_number, MQTT_SERVER, MQTT_1_PORT, sensors, last_will_sent
     client = mqtt.Client("Client-1883")
     client.username_pw_set(username="dso_server", password="dso_password")
     client.on_connect = on_connect_1883
@@ -109,6 +109,8 @@ def connect_mqtt_1883():
     indoor_level_topic = f"{telemetry_topic}indoor-level"
     outdoor_mode_topic = f"{telemetry_topic}outdoor-mode"
     outdoor_level_topic = f"{telemetry_topic}outdoor-level"
+
+    last_will_topic = f"hotel/rooms/{room_number}/telemetry/last-will"
 
     current_sensors = {
         "indoor_light": {"active": 0, "level": 0},
@@ -190,6 +192,9 @@ def connect_mqtt_1883():
             print(f'Published {sensors["blind"]["level"]} in {blind_level_topic}')
             current_sensors["blind"]["level"] = sensors["blind"]["level"]
 
+        if last_will_sent:
+            client.publish(last_will_topic, payload="Raspberry has disconnected", qos=0, retain=False)
+            print(f'Published Raspberry has disconnected in {last_will_topic}')
         time.sleep(1)
     client.loop_stop()
 
@@ -205,6 +210,9 @@ def on_connect_1884(client, userdata, flags, rc):
     client.subscribe(raspberry_telemetry_topic)
     print(f"Subscribed to, {raspberry_telemetry_topic}")
 
+    last_will_topic = f"hotel/rooms/{room_number}/telemetry/last-will"
+    client.subscribe(last_will_topic)
+    print(f"Subscribed to, {last_will_topic}")
 
 def on_message_1884(client, userdata, msg):
     global sensors, room_number, connect_raspberry
@@ -267,6 +275,11 @@ def on_message_1884(client, userdata, msg):
             sensors["outside_light"]["level"] = int(payload["value"])
             sensors["outside_light"]["timestamp"] = payload["timestamp"]
 
+        elif "last-will" in topic:
+            print(f"Received {topic[-1]} {msg.payload.decode()}")
+            global last_will_sent
+            last_will_sent = True
+
 
 def on_publish_1884(client, userdata, result):
     pass
@@ -284,11 +297,9 @@ def connect_mqtt_1884():
     client.on_publish = on_publish_1884
     client.on_message = on_message_1884
     # client.on_disconnect = on_disconnect_1884
-
     while room_number == "":
         print(f"WAITING ROOM NUMBER IN THREAD {threading.current_thread().ident}")
         time.sleep(1)
-
     client.connect(MQTT_SERVER, MQTT_2_PORT, 60)
     client.loop_start()
 
@@ -304,6 +315,8 @@ def connect_mqtt_1884():
     indoor_level_command_topic = f"hotel/rooms/{room_number}/command/indoor-level"
     outdoor_command_topic = f"hotel/rooms/{room_number}/command/outdoor"
     outdoor_level_command_topic = f"hotel/rooms/{room_number}/command/outdoor-level"
+
+
 
     current_air_conditioner_mode = 0
     current_blind_mode = 0

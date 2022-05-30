@@ -279,6 +279,8 @@ def connect_mqtt():
     client.on_connect = on_connect
     client.on_publish = on_publish
     client.on_message = on_message
+
+    client.will_set(last_will_topic, payload="Raspberry has disconnected", qos=0, retain=False)
     client.connect(MQTT_SERVER, MQTT_PORT, 60)
 
 
@@ -329,6 +331,7 @@ if __name__ == "__main__":
     indoor_level_topic = f"{telemetry_topic}indoor-level"
     outdoor_mode_topic = f"{telemetry_topic}outdoor-mode"
     outdoor_level_topic = f"{telemetry_topic}outdoor-level"
+    last_will_topic = f"hotel/rooms/{room_number}/telemetry/last-will"
 
     command_topic = f"hotel/rooms/{room_number}/command/+"
     # pwm = None
