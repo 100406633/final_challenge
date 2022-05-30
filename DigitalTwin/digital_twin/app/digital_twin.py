@@ -412,6 +412,7 @@ if __name__ == "__main__":
     MQTT_1_PORT = int(os.getenv("MQTT_1_SERVER_PORT"))
     MQTT_2_PORT = int(os.getenv("MQTT_2_SERVER_PORT"))
 
+    last_will_sent = False
     connect_raspberry = False
     room_number = ""
     container_id = get_host_name()
