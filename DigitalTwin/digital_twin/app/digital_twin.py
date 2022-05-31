@@ -89,7 +89,6 @@ def connect_mqtt_1883():
     client.on_connect = on_connect_1883
     client.on_publish = on_publish_1883
     client.on_message = on_message_1883
-    # client.on_disconnect = on_disconnect_1883
 
     if not client.is_connected():
         client.connect(MQTT_SERVER, MQTT_1_PORT, 60)
@@ -197,6 +196,7 @@ def connect_mqtt_1883():
             client.publish(last_will_topic, payload="Raspberry has disconnected", qos=0, retain=False)
             print(f'Published Raspberry has disconnected in {last_will_topic}')
             last_will_sent = False
+
         time.sleep(1)
     client.loop_stop()
 
@@ -300,7 +300,7 @@ def connect_mqtt_1884():
     client.on_connect = on_connect_1884
     client.on_publish = on_publish_1884
     client.on_message = on_message_1884
-    # client.on_disconnect = on_disconnect_1884
+
     while room_number == "":
         print(f"WAITING ROOM NUMBER IN THREAD {threading.current_thread().ident}")
         time.sleep(1)
@@ -369,6 +369,7 @@ def connect_mqtt_1884():
             print(f'Published {sensors["outside_light"]["level"]} in {outdoor_level_command_topic}')
             current_outdoor_level = sensors["outside_light"]["level"]
 
+        time.sleep(1)
     client.loop_stop()
 
 

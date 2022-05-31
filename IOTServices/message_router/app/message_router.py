@@ -38,9 +38,7 @@ def on_message(client, userdata, msg):
         if topic[-1] == "last-will":
             print("Raspberry", topic[3], "disconnection received")
         else:
-            print("JSON str", msg.payload.decode())
             payload = json.loads(msg.payload)
-            print("payload", payload, "payload type", type(payload))
             requests.post(
                 API_URL,
                 json={"room": topic[2], "type": topic[-1], "value": payload["value"], "timestamp": payload["timestamp"]}

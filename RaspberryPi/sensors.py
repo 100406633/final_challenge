@@ -56,7 +56,7 @@ def button_pressed_callback(channel):
     global sensors
     sem_presence.acquire()
     sensors["presence"]["detected"] = int(not sensors["presence"]["detected"])
-    print(f'changed to {sensors["presence"]["detected"]}\n')
+    print(f'presence changed to {sensors["presence"]["detected"]}\n')
     sem_presence.release()
 
 
@@ -284,7 +284,6 @@ def on_message(client, userdata, msg):
             sensors["outside_light"]["level"] = int(payload["mode"])
             if sensors["outside_light"]["active"] == 1:
                 pwm_outdoor.ChangeDutyCycle(sensors["outside_light"]["level"])
-
 
         elif topic[-1] == "blind":
             print("Received blind command")
