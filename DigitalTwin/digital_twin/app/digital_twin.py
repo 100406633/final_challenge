@@ -84,7 +84,7 @@ def on_disconnect_1883(client, userdata, flags):
 
 def connect_mqtt_1883():
     global room_number, MQTT_SERVER, MQTT_1_PORT, sensors, last_will_sent
-    client = mqtt.Client("Client-1883")
+    client = mqtt.Client()
     client.username_pw_set(username="dso_server", password="dso_password")
     client.on_connect = on_connect_1883
     client.on_publish = on_publish_1883
@@ -295,7 +295,7 @@ def on_disconnect_1884(client, userdata, flags):
 
 def connect_mqtt_1884():
     global room_number, MQTT_SERVER, MQTT_2_PORT, sensors, connect_raspberry
-    client = mqtt.Client("Client-1884")
+    client = mqtt.Client()
     client.username_pw_set(username="dso_server", password="dso_password")
     client.on_connect = on_connect_1884
     client.on_publish = on_publish_1884
