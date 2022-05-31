@@ -9,30 +9,12 @@ import RPi.GPIO as GPIO
 from openpyxl import load_workbook
 
 
-# def angle_to_duty(angle):
-#     return 2 + angle/18
-
-
 def change_servo_pos(pos):
     global servo_pwm
-    # GPIO.output(servo_pin, True)
     print(f"change_servo_pos: {pos}")
-    # if pos == 0:
-    #     servo_pwm.ChangeDutyCycle(2)
-    #     time.sleep(0.5)
-    #     servo_pwm.ChangeDutyCycle(0)
-    #     # GPIO.output(servo_pin, False)
-    # elif pos == 180:
-    #     servo_pwm.ChangeDutyCycle(12)
-    #     time.sleep(0.5)
-    #     servo_pwm.ChangeDutyCycle(0)
-    #     # GPIO.output(servo_pin, False)
-    # else:
-    # duty = angle_to_duty(pos)
     servo_pwm.ChangeDutyCycle(2 + (pos/18))
     time.sleep(0.5)
     servo_pwm.ChangeDutyCycle(0)
-        # GPIO.output(servo_pin, False)
 
 
 def setup():
@@ -67,19 +49,25 @@ def setup():
 
 def button_pressed_callback(channel):
     global sensors
+    sem_presence.acquire()
     sensors["presence"]["detected"] = int(not sensors["presence"]["detected"])
     print(f'changed to {sensors["presence"]["detected"]}\n')
+    sem_presence.release()
 
 
 def led():
     global sensors, air_conditioner_op_mode
     while not kill:
+        sem_presence.acquire()
         if air_conditioner_op_mode == "local" and not sensors["presence"]["detected"]:
+            sem_presence.release()
             GPIO.output(red_pin, GPIO.LOW)
             GPIO.output(green_pin, GPIO.LOW)
             GPIO.output(blue_pin, GPIO.LOW)
             time.sleep(1)
             continue
+
+        sem_presence.release()
 
         sem_color.acquire()
         global color
@@ -132,7 +120,10 @@ def motor():
             air_conditioner_op_mode = "local"
 
         else:  # air_conditioner_op_mode == "local"
+            sem_presence.acquire()
             if not sensors["presence"]["detected"]:
+                sem_presence.release()
+
                 pwm.ChangeDutyCycle(0)
                 sem_color.acquire()
                 color = "green"
@@ -144,7 +135,9 @@ def motor():
                 sensors["air_conditioner"]["level"] = 0
                 time.sleep(1)
                 continue
-                
+
+            sem_presence.release()
+
             temperature = sensors["temperature"]["temperature"]
             if temperature:
                 upper_bound = 24
@@ -195,9 +188,12 @@ def weather_sensor():
     current_hum = 0
     current_temp = 0
     while not kill:
+        sem_presence.acquire()
         if not sensors["presence"]["detected"]:
+            sem_presence.release()
             time.sleep(1)
             continue
+        sem_presence.release()
 
         today = datetime.date.today()
         now = datetime.datetime.now().time()
@@ -285,9 +281,9 @@ def on_message(client, userdata, msg):
             print("Received blind command")
             payload = json.loads(msg.payload)
             sensors["blind"]["is_open"] = int(payload["mode"])
-            if payload["mode"] == "0":
+            if sensors["blind"]["is_open"] == 0:
                 change_servo_pos(0)
-            elif payload["mode"] == "1":
+            elif sensors["blind"]["is_open"] == 1:
                 change_servo_pos(180)
 
         elif topic[-1] == "blind-level":
@@ -381,6 +377,7 @@ if __name__ == "__main__":
     kill = False
     sem_color = threading.Semaphore(2)
     sem_air_conditioner = threading.Semaphore(3)
+    sem_presence = threading.Semaphore(5)
     setup()
 
     client = mqtt.Client()
@@ -400,9 +397,11 @@ if __name__ == "__main__":
             sensor_thread.start()
 
             while not kill:
+                sem_presence.acquire()
                 presence = json.dumps({"value": sensors["presence"]["detected"], "timestamp": str(datetime.datetime.utcnow())})
                 client.publish(presence_topic, payload=presence, qos=0, retain=False)
                 print(f'Published Presence {sensors["presence"]["detected"]}')
+                sem_presence.release()
 
                 temperature_value = json.dumps(
                     {"value": sensors["temperature"]["temperature"], "timestamp": str(datetime.datetime.utcnow())})
