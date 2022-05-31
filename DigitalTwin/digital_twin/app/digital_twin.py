@@ -366,8 +366,6 @@ def connect_mqtt_1884():
             print(f'Published {sensors["outside_light"]["level"]} in {outdoor_level_command_topic}')
             current_outdoor_level = sensors["outside_light"]["level"]
 
-        # randomize_sensors()
-
     client.loop_stop()
 
 
@@ -409,7 +407,7 @@ def ramdomize_thread_function():
 
 
 if __name__ == "__main__":
-    RANDOMIZE_SENSORS_INTERVAL = 60
+    RANDOMIZE_SENSORS_INTERVAL = 180
     MQTT_SERVER = os.getenv("MQTT_SERVER_ADDRESS")
     MQTT_1_PORT = int(os.getenv("MQTT_1_SERVER_PORT"))
     MQTT_2_PORT = int(os.getenv("MQTT_2_SERVER_PORT"))
