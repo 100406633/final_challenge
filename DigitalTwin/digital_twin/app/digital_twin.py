@@ -376,7 +376,7 @@ def randomize_sensors():
         sensors["indoor_light"]["level"] = random.randint(0, 100)
         sensors["indoor_light"]["timestamp"] = str(datetime.datetime.utcnow())
 
-        sensors["outside_light"]["active"] = random.randint(0, 1)
+        sensors["outside_light"]["active"] = int(not sensors["outside_light"]["active"])
         sensors["outside_light"]["level"] = random.randint(0, 100)
         sensors["outside_light"]["timestamp"] = str(datetime.datetime.utcnow())
 
