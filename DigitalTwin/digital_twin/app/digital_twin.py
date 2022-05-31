@@ -90,8 +90,7 @@ def connect_mqtt_1883():
     client.on_publish = on_publish_1883
     client.on_message = on_message_1883
 
-    if not client.is_connected():
-        client.connect(MQTT_SERVER, MQTT_1_PORT, 60)
+    client.connect(MQTT_SERVER, MQTT_1_PORT, 60)
     client.loop_start()
 
     while room_number == "":
@@ -305,8 +304,7 @@ def connect_mqtt_1884():
         print(f"WAITING ROOM NUMBER IN THREAD {threading.current_thread().ident}")
         time.sleep(1)
 
-    if not client.is_connected():
-        client.connect(MQTT_SERVER, MQTT_2_PORT, 60)
+    client.connect(MQTT_SERVER, MQTT_2_PORT, 60)
     client.loop_start()
 
     air_conditioner_command_topic = f"hotel/rooms/{room_number}/command/air-conditioner"
