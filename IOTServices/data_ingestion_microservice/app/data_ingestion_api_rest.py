@@ -31,4 +31,4 @@ def device_state():
 
 
 # it is paramount that this line be here, below the @app.route decorator (for some reason)
-app.run(host=HOST, port=PORT, debug=True)
+app.run(host=HOST, port=PORT, debug=False)
