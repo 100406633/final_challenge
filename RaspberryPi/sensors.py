@@ -72,104 +72,120 @@ def button_pressed_callback(channel):
 
 
 def led():
-    global sensors
+    global sensors, air_conditioner_op_mode
     while not kill:
-        if not sensors["presence"]["detected"]:
+        if air_conditioner_op_mode == "local" and not sensors["presence"]["detected"]:
             GPIO.output(red_pin, GPIO.LOW)
             GPIO.output(green_pin, GPIO.LOW)
             GPIO.output(blue_pin, GPIO.LOW)
             time.sleep(1)
             continue
 
-        sem.acquire()
+        sem_color.acquire()
         global color
         if color == "blue":
-            #print("led blue")
             GPIO.output(red_pin, GPIO.LOW)
             GPIO.output(green_pin, GPIO.LOW)
             GPIO.output(blue_pin, GPIO.HIGH)
             time.sleep(1)
         elif color == "green":
-            #print("led green")
             GPIO.output(red_pin, GPIO.LOW)
             GPIO.output(green_pin, GPIO.HIGH)
             GPIO.output(blue_pin, GPIO.LOW)
             time.sleep(1)
 
         elif color == "red":
-            #print("led red")
             GPIO.output(red_pin, GPIO.HIGH)
             GPIO.output(green_pin, GPIO.LOW)
             GPIO.output(blue_pin, GPIO.LOW)
             time.sleep(1)
-        sem.release()
+        sem_color.release()
 
 
 def motor():
-    global pwm, color, sensors, current_state
+    global pwm, color, sensors, air_conditioner_op_mode
     color = "green"
     while not kill:
-        if not sensors["presence"]["detected"] or not sensors["air_conditioner"]["active"]:
-            pwm.ChangeDutyCycle(0)
-            sem.acquire()
-            color = "green"
-            sem.release()
-            time.sleep(1)
-            continue
-
-        temperature = sensors["temperature"]["temperature"]
-        if current_state == "web":
+        if air_conditioner_op_mode == "web":
+            sem_air_conditioner.acquire()
             if sensors["air_conditioner"]["active"] == 0:
                 pwm.ChangeDutyCycle(0)
                 sensors["air_conditioner"]["level"] = 0
-                sem.acquire()
+                sem_color.acquire()
                 color = "green"
-                sem.release()
+                sem_color.release()
             elif sensors["air_conditioner"]["active"] == 1:
                 pwm.ChangeDutyCycle(100)
                 sensors["air_conditioner"]["level"] = 100
-                sem.acquire()
+                sem_color.acquire()
                 color = "red"
-                sem.release()
+                sem_color.release()
             elif sensors["air_conditioner"]["active"] == 2:
                 pwm.ChangeDutyCycle(100)
                 sensors["air_conditioner"]["level"] = 100
-                sem.acquire()
+                sem_color.acquire()
                 color = "blue"
-                sem.release()
+                sem_color.release()
+                
+            sem_air_conditioner.release()
             time.sleep(5)
-            current_state = "local"
-        else:
+            air_conditioner_op_mode = "local"
+
+        else:  # air_conditioner_op_mode == "local"
+            if not sensors["presence"]["detected"]:
+                pwm.ChangeDutyCycle(0)
+                sem_color.acquire()
+                color = "green"
+                sem_color.release()
+
+                sem_air_conditioner.acquire()
+                sensors["air_conditioner"]["active"] = 0
+                sem_air_conditioner.release()
+                sensors["air_conditioner"]["level"] = 0
+                time.sleep(1)
+                continue
+                
+            temperature = sensors["temperature"]["temperature"]
             if temperature:
                 upper_bound = 24
                 lower_bound = 21
-                if temperature and lower_bound < temperature < upper_bound:
+                if lower_bound < temperature < upper_bound:
                     pwm.ChangeDutyCycle(0)
-                    sem.acquire()
+                    sem_color.acquire()
                     color = "green"
-                    sem.release()
+                    sem_color.release()
+
+                    sem_air_conditioner.acquire()
+                    sensors["air_conditioner"]["active"] = 0
+                    sem_air_conditioner.release()
                     sensors["air_conditioner"]["level"] = 0
-                elif temperature:
-                    if temperature < lower_bound:
-                        cycle = abs(lower_bound-temperature) * 10
-                        if cycle > 100:
-                            cycle = 100
-                        #print(f"red {cycle=}")
-                        sem.acquire()
-                        color = "red"
-                        sem.release()
-                        pwm.ChangeDutyCycle(cycle)
-                        sensors["air_conditioner"]["level"] = cycle
-                    elif temperature > upper_bound:
-                        cycle = abs(temperature - upper_bound) * 10
-                        if cycle > 100:
-                            cycle = 100
-                        #print(f"blue {cycle=}")
-                        sem.acquire()
-                        color = "blue"
-                        sem.release()
-                        pwm.ChangeDutyCycle(cycle)
-                        sensors["air_conditioner"]["level"] = cycle
+
+                if temperature < lower_bound:
+                    cycle = abs(lower_bound-temperature) * 10
+                    if cycle > 100:
+                        cycle = 100
+                    sem_color.acquire()
+                    color = "red"
+                    sem_color.release()
+                    pwm.ChangeDutyCycle(cycle)
+
+                    sem_air_conditioner.acquire()
+                    sensors["air_conditioner"]["active"] = 1
+                    sem_air_conditioner.release()
+                    sensors["air_conditioner"]["level"] = cycle
+                elif temperature > upper_bound:
+                    cycle = abs(temperature - upper_bound) * 10
+                    if cycle > 100:
+                        cycle = 100
+                    sem_color.acquire()
+                    color = "blue"
+                    sem_color.release()
+                    pwm.ChangeDutyCycle(cycle)
+
+                    sem_air_conditioner.acquire()
+                    sensors["air_conditioner"]["active"] = 2
+                    sem_air_conditioner.release()
+                    sensors["air_conditioner"]["level"] = cycle
 
 
 def weather_sensor():
@@ -229,12 +245,15 @@ def on_message(client, userdata, msg):
         is_connected = True
 
     elif "command" in topic:
-        global sensors, current_state
+        global sensors, air_conditioner_op_mode
         if topic[-1] == "air-conditioner":
             print("Received AC command")
             payload = json.loads(msg.payload)
+
+            sem_air_conditioner.acquire()
             sensors["air_conditioner"]["active"] = int(payload["mode"])
-            current_state = "web"
+            sem_air_conditioner.release()
+            air_conditioner_op_mode = "web"
 
         elif topic[-1] == "indoor":
             print("Received indoor command")
@@ -294,7 +313,7 @@ def connect_mqtt():
 
 
 if __name__ == "__main__":
-    MQTT_SERVER = "34.89.143.36"
+    MQTT_SERVER = "34.159.22.233"
     MQTT_PORT = 1884
     is_connected = False
 
@@ -326,7 +345,7 @@ if __name__ == "__main__":
     }
 
     room_number = "Room1"
-    current_state = "local"
+    air_conditioner_op_mode = "local"
     CONFIG_TOPIC = f"hotel/rooms/{room_number}/config"
     telemetry_topic = f"hotel/rooms/{room_number}/telemetry/"
 
@@ -360,7 +379,8 @@ if __name__ == "__main__":
 
     color = ""
     kill = False
-    sem = threading.Semaphore(2)
+    sem_color = threading.Semaphore(2)
+    sem_air_conditioner = threading.Semaphore(3)
     setup()
 
     client = mqtt.Client()
@@ -389,10 +409,12 @@ if __name__ == "__main__":
                 client.publish(temperature_topic, payload=temperature_value, qos=0, retain=False)
                 print(f'Published Temperature {sensors["temperature"]["temperature"]}')
 
+                sem_air_conditioner.acquire()
                 air_conditioner_mode = json.dumps(
                     {"value": sensors["air_conditioner"]["active"], "timestamp": str(datetime.datetime.utcnow())})
                 client.publish(air_conditioner_mode_topic, payload=air_conditioner_mode, qos=0, retain=False)
                 print(f'Published AC mode{sensors["air_conditioner"]["active"]}')
+                sem_air_conditioner.release()
 
                 air_conditioner_level = json.dumps(
                     {"value": sensors["air_conditioner"]["level"], "timestamp": str(datetime.datetime.utcnow())})

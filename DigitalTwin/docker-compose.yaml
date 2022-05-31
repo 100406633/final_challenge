@@ -4,7 +4,7 @@ services:
   digital_twin:
     build: ./digital_twin
     environment:
-      - MQTT_SERVER_ADDRESS=34.89.143.36
+      - MQTT_SERVER_ADDRESS=34.159.22.233
       - MQTT_1_SERVER_PORT=1883
       - MQTT_2_SERVER_PORT=1884
       - PYTHONUNBUFFERED=1
