@@ -378,7 +378,7 @@ def randomize_sensors():
         sensors["indoor_light"]["level"] = random.randint(0, 100)
         sensors["indoor_light"]["timestamp"] = str(datetime.datetime.utcnow())
 
-        sensors["outside_light"]["active"] = int(not sensors["outside_light"]["active"])
+        sensors["outside_light"]["active"] = random.randint(0, 1)
         sensors["outside_light"]["level"] = random.randint(0, 100)
         sensors["outside_light"]["timestamp"] = str(datetime.datetime.utcnow())
 
@@ -409,7 +409,7 @@ def ramdomize_thread_function():
 
 
 if __name__ == "__main__":
-    RANDOMIZE_SENSORS_INTERVAL = 30
+    RANDOMIZE_SENSORS_INTERVAL = 15
     MQTT_SERVER = os.getenv("MQTT_SERVER_ADDRESS")
     MQTT_1_PORT = int(os.getenv("MQTT_1_SERVER_PORT"))
     MQTT_2_PORT = int(os.getenv("MQTT_2_SERVER_PORT"))
